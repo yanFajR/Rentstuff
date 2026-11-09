@@ -4,35 +4,6 @@ Asisten pengelolaan tagihan dan pengingat pembayaran untuk bisnis rental (mobil,
 
 Rental Reminder bukan marketplace rental dan bukan sistem inventory lengkap. Fokus produk adalah transaksi rental, tagihan, pembayaran, jatuh tempo, dan pengingat pembayaran pelanggan.
 
-## Status pengembangan
-
-**Tahap 1 — Fondasi: selesai.**
-**Tahap 2 — Authentication & Business Profile: selesai.**
-**Tahap 3 — Customer Management & Rental Management: selesai.**
-**Tahap 4 — Invoice & Payment Management: selesai.**
-**Tahap 5 — Reminder & WhatsApp Manual: selesai.**
-**Tahap 6 — Reports & CSV Export: selesai.**
-**Tahap 7 — Security Review, Hardening & Production Readiness (SQLite): selesai.**
-
-Yang sudah berjalan:
-
-- Satu aplikasi NestJS (modular monolith) dengan EJS, HTMX, dan Tailwind CSS.
-- Prisma + SQLite dengan migrasi versioned, WAL, busy timeout, integrity check, backup/restore, dan deployment satu instance.
-- Autentikasi lengkap: register, login, logout, bcrypt, session server-side, CSRF, rate limiting, pembersihan session kedaluwarsa.
-- Profil bisnis dan isolasi data per tenant.
-- **Pelanggan**: tambah, lihat, edit, cari, urutkan, pagination, arsip/pulihkan (soft delete), dan riwayat transaksi.
-- **Transaksi rental**: nomor otomatis per bisnis, tambah, lihat, edit, filter status/rentang tanggal, pencarian, pagination, serta status `ACTIVE` → `COMPLETED`/`CANCELLED`.
-- **Tagihan**: invoice dari rental, nomor otomatis, snapshot total, jatuh tempo, edit selama belum ada pembayaran, pembatalan dengan alasan, status otomatis `UNPAID`/`PARTIAL`/`PAID`/`OVERDUE`/`CANCELLED`.
-- **Pembayaran**: pembayaran penuh/parsial/berulang, validasi outstanding di backend, beberapa metode pembayaran, void dengan alasan dan audit pelaku/waktu, riwayat lengkap.
-- **Pengingat**: scheduler harian 09.00 WIB untuk H-3, H-1, jatuh tempo, dan H+1; job tersimpan di database dengan unique constraint anti-duplikasi; daftar/detail/filter/pagination; riwayat aktivitas; WhatsApp manual melalui `wa.me`; status `OPENED`/`SENT` hanya dari aktivitas pengguna.
-- **Laporan**: ringkasan keuangan, transaksi rental, invoice, pembayaran, piutang berkelompok umur, dan aktivitas reminder; filter periode Asia/Jakarta, pencarian, sorting, pagination, serta export CSV aman.
-- **Hardening**: security header, liveness/readiness terpisah, rate limit export/mutasi, logging tanpa query/PII, validasi 72 byte bcrypt, backup/restore SQLite teruji, dan deployment systemd/Nginx.
-- Quick-add pelanggan melalui HTMX tanpa meninggalkan form transaksi.
-- Dashboard memakai data nyata: outstanding, pembayaran valid, jumlah invoice per status, invoice/pembayaran terbaru, ringkasan pengingat, 5 pengingat terbaru, kinerja bulan ini, dan tren enam bulan.
-- Unit test dan end-to-end test untuk seluruh alur, termasuk isolasi tenant, keamanan, CSV, dan concurrency SQLite.
-
-Seluruh modul Tahap 1–7 sudah berjalan.
-
 ## Teknologi
 
 | Komponen             | Teknologi                      | Versi terpasang |
@@ -147,17 +118,6 @@ Detail lengkap ada di [docs/installation.md](docs/installation.md).
 - Foreign key constraints SQLite diaktifkan oleh konektor Prisma.
 - Detail skema dan konvensi ada di [docs/database.md](docs/database.md).
 
-## Alur singkat
-
-1. **Pelanggan** — nomor WhatsApp divalidasi dan dinormalisasi ke `628xx`; pelanggan dapat diarsipkan tanpa menghapus riwayat.
-2. **Transaksi** — pelanggan wajib aktif dan berasal dari bisnis yang sama; nomor transaksi `RNT-00001` dibuat otomatis dan unik per bisnis.
-3. **Tagihan** — invoice dibuat dari rental; total disimpan sebagai snapshot sehingga perubahan harga rental setelahnya tidak mengubah invoice.
-4. **Pembayaran** — penuh/parsial dicatat dalam transaksi database dan tidak boleh melebihi sisa tagihan; void menyimpan alasan/pelaku/waktu dan tidak menghapus record.
-5. **Status** — dihitung backend: CANCELLED → PAID → OVERDUE (jika lewat jatuh tempo) → PARTIAL → UNPAID.
-6. **Pengingat** — scheduler membuat job H-3/H-1/jatuh tempo/H+1 di database; invoice lunas/dibatalkan dilewati; WhatsApp dibuka manual dan status terkirim hanya setelah pengguna menandainya.
-7. **Laporan** — ringkasan, rental, invoice, pembayaran, piutang, dan reminder memakai data aktual; filter periode Asia/Jakarta dan export CSV mengikuti filter aktif.
-8. **Isolasi tenant** — semua query memakai `businessId` dari konteks autentikasi; `businessId` dari request ditolak 403.
-
 ## Struktur project
 
 ```text
@@ -207,5 +167,5 @@ npm run db:backup                    # backup SQLite aman (default daily)
 npm run db:restore -- --backup=... --yes
 npm run perf:seed                    # seed QA 1.000/5.000/10.000/20.000/10.000/30.000
 npm run perf:test                    # ukur endpoint pada server QA
-npm run reminders:run                # trigger scheduler manual (setelah build)
+npm run reminders:run                # trigger scheduler manusal (setelah build)
 ```
