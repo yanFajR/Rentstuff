@@ -1,0 +1,19 @@
+<% if (rental) { %>
+  <div class="mt-2.5 rounded-xl border border-brand-200/80 bg-brand-50/50 p-3.5 text-xs shadow-2xs">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <div>
+        <p class="font-bold text-slate-900"><%= rental.customer.name %> · <span class="font-mono text-brand-700"><%= rental.rentalNumber %></span></p>
+        <p class="mt-0.5 text-slate-600"><%= rental.itemName %> (Masa sewa: <%= formatDate(rental.startDate) %> s/d <%= formatDate(rental.endDate) %>)</p>
+      </div>
+      <div class="text-right">
+        <span class="text-[11px] text-slate-500 block">Tarif Kesepakatan:</span>
+        <span class="font-bold text-slate-900 tabular-nums"><%= formatRupiah(rental.price) %></span>
+      </div>
+    </div>
+  </div>
+  <% if (typeof oob !== 'undefined' && oob) { %>
+    <%- include('total-field', { value: String(rental.price), errors: {}, oob: true }) %>
+  <% } %>
+<% } else { %>
+  <p class="mt-2 text-xs text-slate-400">Pilih salah satu transaksi sewa aktif di atas untuk memuat rincian tarif dan data penyewa.</p>
+<% } %>

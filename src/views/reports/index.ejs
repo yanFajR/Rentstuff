@@ -1,0 +1,110 @@
+<%
+  const baseQuery = { period: period.period, from: period.from, to: period.to };
+%>
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<%- include('../partials/head') %>
+<body class="min-h-full bg-slate-50 text-slate-900">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Lewati ke konten utama</a>
+  <div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-xs lg:hidden"></div>
+  <%- include('../partials/sidebar') %>
+
+  <div class="flex min-h-screen flex-col lg:pl-72">
+    <%- include('../partials/topbar') %>
+
+    <main id="main-content" class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <%- include('../partials/flash') %>
+
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight text-slate-900">Laporan bisnis</h2>
+            <p class="mt-1 text-xs sm:text-sm text-slate-500">
+              Analisis performa penyewaan, tagihan, arus kas pembayaran, piutang, dan efektivitas pengingat.
+            </p>
+          </div>
+          <a href="/dashboard" class="btn btn-secondary self-start sm:self-auto">
+            <%- include('../partials/icon', { iconName: 'dashboard', iconClass: 'h-4 w-4 text-slate-500' }) %>
+            Kembali ke ringkasan
+          </a>
+        </div>
+
+        <!-- Filter Period Card -->
+        <section class="card p-4 sm:p-5">
+          <form method="get" action="/reports" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+            <input type="hidden" name="tab" value="<%= tab %>" />
+            <div class="lg:col-span-3">
+              <label for="period" class="field-label">Periode laporan</label>
+              <select id="period" name="period" class="select-field">
+                <% periodOptions.forEach(function (option) { %>
+                  <option value="<%= option %>" <%= period.period === option ? 'selected' : '' %>><%= periodLabels[option] %></option>
+                <% }); %>
+              </select>
+            </div>
+            <div class="lg:col-span-3">
+              <label for="from" class="field-label">Tanggal awal</label>
+              <input id="from" name="from" type="date" value="<%= period.from %>" class="input-field" />
+            </div>
+            <div class="lg:col-span-3">
+              <label for="to" class="field-label">Tanggal akhir</label>
+              <input id="to" name="to" type="date" value="<%= period.to %>" class="input-field" />
+            </div>
+            <div class="lg:col-span-3">
+              <button type="submit" class="btn btn-primary w-full">
+                <%- include('../partials/icon', { iconName: 'filter', iconClass: 'h-4 w-4' }) %>
+                Terapkan periode
+              </button>
+            </div>
+          </form>
+          <div class="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-[11px] text-slate-500">
+            <span>Periode aktif: <span class="font-semibold text-slate-800"><%= period.label %></span> · Waktu Indonesia Barat (WIB) · Termasuk tanggal awal &amp; akhir</span>
+            <span>Ubah tanggal lalu pilih "Rentang tanggal khusus" untuk menyesuaikan sendiri.</span>
+          </div>
+        </section>
+
+        <!-- Segmented Tab Navigation -->
+        <nav aria-label="Jenis laporan" class="overflow-x-auto pb-1">
+          <div class="inline-flex min-w-full sm:min-w-0 gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xs">
+            <% tabs.forEach(function (tabKey) { %>
+              <a
+                href="<%= buildUrl('/reports', Object.assign({}, baseQuery, { tab: tabKey })) %>"
+                class="whitespace-nowrap rounded-xl px-4 py-2 text-xs sm:text-sm font-semibold transition <%= tab === tabKey ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900' %>"
+                <%- tab === tabKey ? 'aria-current="page"' : '' %>
+              ><%= tabLabels[tabKey] %></a>
+            <% }); %>
+          </div>
+        </nav>
+
+        <div id="report-content" class="space-y-5">
+          <% if (filterError) { %>
+            <div class="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+              <%- include('../partials/icon', { iconName: 'alert', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-rose-600' }) %>
+              <p><%= filterError %></p>
+            </div>
+          <% } %>
+
+          <% if (tab === 'summary') { %>
+            <%- include('partials/summary') %>
+          <% } else if (tab === 'rentals') { %>
+            <%- include('partials/rentals') %>
+          <% } else if (tab === 'invoices') { %>
+            <%- include('partials/invoices') %>
+          <% } else if (tab === 'payments') { %>
+            <%- include('partials/payments') %>
+          <% } else if (tab === 'receivables') { %>
+            <%- include('partials/receivables') %>
+          <% } else { %>
+            <%- include('partials/reminders') %>
+          <% } %>
+        </div>
+
+        <p class="pb-4 text-center text-xs text-slate-400">
+          Semua nominal dalam Rupiah (IDR). Laporan disajikan secara analitis dan aman tanpa mengubah data bisnis aktif.
+        </p>
+      </div>
+    </main>
+
+    <%- include('../partials/foot') %>
+  </div>
+</body>
+</html>

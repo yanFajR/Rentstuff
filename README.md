@@ -209,15 +209,3 @@ npm run perf:seed                    # seed QA 1.000/5.000/10.000/20.000/10.000/
 npm run perf:test                    # ukur endpoint pada server QA
 npm run reminders:run                # trigger scheduler manual (setelah build)
 ```
-
-## Tahapan berikutnya
-
-| Tahap | Cakupan                                                                         |
-| ----- | ------------------------------------------------------------------------------- |
-| 5     | Reminder rules, NestJS Schedule, reminder logs, anti-duplikasi, WhatsApp manual |
-| 6     | Laporan, export CSV, penyempurnaan dashboard                                    |
-| 7     | Security review, hardening SQLite, backup/restore, deployment, performance      |
-
-Tahap 7 selesai. Status: **READY WITH LIMITATIONS** untuk deployment awal satu instance SQLite. Tidak ada fitur bisnis baru yang ditambahkan pada Tahap 7.
-#   R e n t s t u f f  
- 

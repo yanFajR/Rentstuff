@@ -1,0 +1,6 @@
+node_modules
+dist
+coverage
+public/css
+prisma/migrations
+src/views

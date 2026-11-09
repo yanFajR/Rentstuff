@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships        BusinessMember[]
+  recordedPayments   Payment[]          @relation("PaymentsRecorded")
+  voidedPayments     Payment[]          @relation("PaymentsVoided")
+  reminderActivities ReminderActivity[]
+
+  @@map("users")
+}
+
+model Business {
+  id             String   @id @default(uuid())
+  name           String
+  address        String?
+  whatsappNumber String?
+  description    String?
+  currency       String   @default("IDR")
+  timezone       String   @default("Asia/Jakarta")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  members            BusinessMember[]
+  customers          Customer[]
+  rentals            RentalRecord[]
+  invoices           Invoice[]
+  payments           Payment[]
+  reminderJobs       ReminderJob[]
+  reminderActivities ReminderActivity[]
+
+  @@index([name])
+  @@map("businesses")
+}
+
+model BusinessMember {
+  id         String   @id @default(uuid())
+  businessId String
+  userId     String
+  role       String   @default("OWNER")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  business Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([businessId, userId])
+  @@index([userId])
+  @@map("business_members")
+}
+
+model Session {
+  id        String   @id
+  data      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model Customer {
+  id             String    @id @default(uuid())
+  businessId     String
+  name           String
+  whatsappNumber String
+  email          String?
+  address        String?
+  notes          String?
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  business Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  rentals  RentalRecord[]
+
+  @@index([businessId, name])
+  @@index([businessId, whatsappNumber])
+  @@index([businessId, createdAt])
+  @@index([businessId, archivedAt])
+  @@map("customers")
+}
+
+model RentalRecord {
+  id           String   @id @default(uuid())
+  businessId   String
+  customerId   String
+  rentalNumber String
+  itemName     String
+  startDate    DateTime
+  endDate      DateTime
+  price        Int
+  notes        String?
+  status       String   @default("ACTIVE")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  business Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customer Customer  @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  invoices Invoice[]
+
+  @@unique([businessId, rentalNumber])
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+  @@index([businessId, startDate])
+  @@index([customerId])
+  @@map("rental_records")
+}
+
+model Invoice {
+  id                 String    @id @default(uuid())
+  businessId         String
+  rentalRecordId     String
+  invoiceNumber      String
+  issueDate          DateTime
+  dueDate            DateTime
+  totalAmount        Int
+  description        String?
+  notes              String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  business     Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  rentalRecord RentalRecord  @relation(fields: [rentalRecordId], references: [id], onDelete: Restrict)
+  payments     Payment[]
+  reminderJobs ReminderJob[]
+
+  @@unique([businessId, invoiceNumber])
+  @@index([businessId, issueDate])
+  @@index([businessId, dueDate])
+  @@index([businessId, createdAt])
+  @@index([businessId, rentalRecordId])
+  @@index([rentalRecordId])
+  @@map("invoices")
+}
+
+model Payment {
+  id               String    @id @default(uuid())
+  businessId       String
+  invoiceId        String
+  amount           Int
+  paymentDate      DateTime
+  method           String
+  reference        String?
+  notes            String?
+  recordedByUserId String
+  voidedAt         DateTime?
+  voidReason       String?
+  voidedByUserId   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoice    Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  recordedBy User     @relation("PaymentsRecorded", fields: [recordedByUserId], references: [id], onDelete: Restrict)
+  voidedBy   User?    @relation("PaymentsVoided", fields: [voidedByUserId], references: [id], onDelete: Restrict)
+
+  @@index([businessId, invoiceId])
+  @@index([businessId, paymentDate])
+  @@index([businessId, createdAt])
+  @@index([invoiceId])
+  @@index([recordedByUserId])
+  @@map("payments")
+}
+
+model ReminderJob {
+  id            String    @id @default(uuid())
+  businessId    String
+  invoiceId     String
+  reminderType  String
+  scheduledDate DateTime
+  status        String    @default("PENDING")
+  processedAt   DateTime?
+  skippedAt     DateTime?
+  skipReason    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invoice    Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+  activities ReminderActivity[]
+
+  @@unique([invoiceId, reminderType, scheduledDate])
+  @@index([businessId, status, scheduledDate])
+  @@index([businessId, scheduledDate])
+  @@index([invoiceId])
+  @@map("reminder_jobs")
+}
+
+model ReminderActivity {
+  id           String   @id @default(uuid())
+  businessId   String
+  reminderId   String
+  userId       String?
+  activityType String
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  business Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  reminder ReminderJob @relation(fields: [reminderId], references: [id], onDelete: Restrict)
+  user     User?       @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([businessId, createdAt])
+  @@index([reminderId])
+  @@index([userId])
+  @@map("reminder_activities")
+}

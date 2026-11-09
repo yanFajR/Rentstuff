@@ -1,0 +1,146 @@
+<%
+  const change = report.paymentChangePercent;
+  const changeLabel = change === null
+    ? report.paymentsTotal > 0 && report.previousPaymentsTotal === 0
+      ? 'Pembayaran baru pada periode ini'
+      : 'Belum ada pembanding'
+    : `${change >= 0 ? '+' : '−'}${formatNumber(Math.abs(change))}% dibanding periode sebelumnya`;
+  const changeClass = change === null ? 'text-slate-500 bg-slate-100' : change >= 0 ? 'text-emerald-700 bg-emerald-50 border border-emerald-200' : 'text-rose-700 bg-rose-50 border border-rose-200';
+%>
+<section class="space-y-5">
+  <!-- Executive Metrics Row -->
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total tagihan diterbitkan</p>
+        <span class="rounded-lg bg-slate-100 p-1.5 text-slate-500">
+          <%- include('../../partials/icon', { iconName: 'invoice', iconClass: 'h-4 w-4' }) %>
+        </span>
+      </div>
+      <p class="mt-2 text-2xl font-bold tracking-tight text-slate-900"><%= formatRupiah(report.invoiceTotal) %></p>
+      <p class="mt-2 text-xs text-slate-500"><span class="font-medium text-slate-700"><%= formatNumber(report.activeInvoiceCount) %> tagihan aktif</span> · <%= formatNumber(report.cancelledCount) %> dibatalkan</p>
+    </article>
+
+    <article class="card p-5 border-emerald-100/80 bg-linear-to-b from-white to-emerald-50/20">
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-800">Pembayaran diterima</p>
+        <span class="rounded-lg bg-emerald-100 p-1.5 text-emerald-700">
+          <%- include('../../partials/icon', { iconName: 'wallet', iconClass: 'h-4 w-4' }) %>
+        </span>
+      </div>
+      <p class="mt-2 text-2xl font-bold tracking-tight text-emerald-700"><%= formatRupiah(report.paymentsTotal) %></p>
+      <p class="mt-2 text-xs text-slate-500"><span class="font-medium text-emerald-700"><%= formatNumber(report.paymentsCount) %> pembayaran valid</span> pada periode</p>
+    </article>
+
+    <article class="card p-5 border-amber-100/80 bg-linear-to-b from-white to-amber-50/20">
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Sisa tagihan saat ini</p>
+        <span class="rounded-lg bg-amber-100 p-1.5 text-amber-700">
+          <%- include('../../partials/icon', { iconName: 'clock', iconClass: 'h-4 w-4' }) %>
+        </span>
+      </div>
+      <p class="mt-2 text-2xl font-bold tracking-tight text-amber-700"><%= formatRupiah(report.outstanding) %></p>
+      <p class="mt-2 text-xs text-slate-500">Total piutang dari seluruh tagihan aktif</p>
+    </article>
+
+    <article class="card p-5">
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Jumlah tagihan</p>
+        <span class="rounded-lg bg-slate-100 p-1.5 text-slate-500">
+          <%- include('../../partials/icon', { iconName: 'document', iconClass: 'h-4 w-4' }) %>
+        </span>
+      </div>
+      <p class="mt-2 text-2xl font-bold tracking-tight text-slate-900"><%= formatNumber(report.invoiceCount) %></p>
+      <p class="mt-2 text-xs text-slate-500">Berdasarkan tanggal penerbitan pada periode</p>
+    </article>
+  </div>
+
+  <!-- Breakdown and Comparison Grid -->
+  <div class="grid gap-5 lg:grid-cols-3">
+    <section class="card p-5 lg:col-span-2">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Status tagihan dalam periode</h3>
+          <p class="mt-0.5 text-xs text-slate-500">Dihitung otomatis dari pelunasan valid dan tanggal jatuh tempo.</p>
+        </div>
+        <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">Dibatalkan terpisah</span>
+      </div>
+      <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        <div class="rounded-xl border border-emerald-200/80 bg-emerald-50/60 p-3.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Lunas</p>
+          <p class="mt-1.5 text-2xl font-bold text-emerald-950"><%= formatNumber(report.paidCount) %></p>
+        </div>
+        <div class="rounded-xl border border-slate-200/80 bg-slate-50 p-3.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Belum dibayar</p>
+          <p class="mt-1.5 text-2xl font-bold text-slate-900"><%= formatNumber(report.unpaidCount) %></p>
+        </div>
+        <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Sebagian</p>
+          <p class="mt-1.5 text-2xl font-bold text-amber-950"><%= formatNumber(report.partialCount) %></p>
+        </div>
+        <div class="rounded-xl border border-rose-200/80 bg-rose-50/60 p-3.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-rose-800">Terlambat</p>
+          <p class="mt-1.5 text-2xl font-bold text-rose-950"><%= formatNumber(report.overdueCount) %></p>
+        </div>
+        <div class="rounded-xl border border-slate-200/80 bg-slate-100/50 p-3.5">
+          <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dibatalkan</p>
+          <p class="mt-1.5 text-2xl font-bold text-slate-600"><%= formatNumber(report.cancelledCount) %></p>
+        </div>
+      </div>
+      <p class="mt-4 border-t border-slate-100 pt-3 text-[11px] leading-relaxed text-slate-500">
+        Total tagihan diterbitkan tidak memasukkan tagihan yang dibatalkan. Sisa tagihan mencerminkan posisi piutang saat laporan dibuat, bukan sekadar selisih periode.
+      </p>
+    </section>
+
+    <section class="card p-5 flex flex-col justify-between">
+      <div>
+        <h3 class="text-sm font-bold text-slate-900">Pembayaran dibanding periode sebelumnya</h3>
+        <p class="mt-0.5 text-xs text-slate-500">
+          Pembanding: <span class="font-medium text-slate-700"><%= formatDate(period.previousFromDate) %> – <%= formatDate(period.previousToDate) %></span>
+        </p>
+        <dl class="mt-4 space-y-3 divide-y divide-slate-100 text-sm">
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <dt class="text-slate-500">Periode ini</dt>
+            <dd class="font-bold text-emerald-700"><%= formatRupiah(report.paymentsTotal) %></dd>
+          </div>
+          <div class="flex items-center justify-between gap-3 pt-3">
+            <dt class="text-slate-500">Periode sebelumnya</dt>
+            <dd class="font-semibold text-slate-700"><%= formatRupiah(report.previousPaymentsTotal) %></dd>
+          </div>
+        </dl>
+      </div>
+      <div class="mt-4 rounded-xl p-3 text-xs font-semibold text-center <%= changeClass %>">
+        <%= changeLabel %>
+      </div>
+    </section>
+  </div>
+
+  <!-- Trend Visualization -->
+  <%- include('../../partials/trend-chart', { trend: report.trend }) %>
+
+  <!-- Accounting Methodology Note -->
+  <section class="rounded-2xl border border-slate-200/90 bg-white p-5 text-xs leading-relaxed text-slate-500 shadow-xs">
+    <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+      <%- include('../../partials/icon', { iconName: 'shield', iconClass: 'h-4 w-4 text-brand-600' }) %>
+      <span>Prinsip Perhitungan &amp; Integritas Data</span>
+    </div>
+    <ul class="mt-3 grid gap-2 sm:grid-cols-2 text-slate-600">
+      <li class="flex items-start gap-2">
+        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0"></span>
+        <span><strong class="font-semibold text-slate-800">Tagihan diterbitkan</strong> dihitung dari tagihan aktif dengan tanggal terbit pada periode; tagihan batal tidak dihitung.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0"></span>
+        <span><strong class="font-semibold text-slate-800">Pembayaran diterima</strong> memakai tanggal bayar dan hanya pembayaran valid; pembayaran batal tidak masuk uang masuk.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0"></span>
+        <span><strong class="font-semibold text-slate-800">Sisa tagihan</strong> adalah total saldo tagihan belum lunas saat laporan dilihat, bukan hanya transaksi periode ini.</span>
+      </li>
+      <li class="flex items-start gap-2">
+        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-brand-500 shrink-0"></span>
+        <span>Seluruh rentang tanggal terikat zona waktu <strong class="font-semibold text-slate-800">Asia/Jakarta (WIB)</strong> secara inklusif.</span>
+      </li>
+    </ul>
+  </section>
+</section>

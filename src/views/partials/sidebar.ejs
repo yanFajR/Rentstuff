@@ -1,0 +1,85 @@
+<aside
+  id="app-sidebar"
+  data-sidebar
+  class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-slate-200/90 bg-white transition-transform duration-200 ease-out lg:translate-x-0"
+  aria-label="Navigasi utama"
+>
+  <div class="flex h-16 items-center gap-3 border-b border-slate-100 px-5">
+    <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand-600 text-white shadow-xs">
+      <%- include('icon', { iconName: 'bell', iconClass: 'h-4.5 w-4.5' }) %>
+    </div>
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-sm font-bold tracking-tight text-slate-900"><%= locals.appName %></p>
+      <p class="truncate text-[11px] font-medium text-slate-500">Asisten Bisnis Rental</p>
+    </div>
+    <button
+      type="button"
+      data-sidebar-close
+      class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+      aria-label="Tutup menu"
+    >
+      <%- include('icon', { iconName: 'close', iconClass: 'h-5 w-5' }) %>
+    </button>
+  </div>
+
+  <nav class="flex-1 space-y-6 overflow-y-auto px-3.5 py-5">
+    <% locals.navSections.forEach(function (section) { %>
+      <div>
+        <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500"><%= section.title %></p>
+        <ul class="space-y-1">
+          <% section.items.forEach(function (item) { %>
+            <li>
+              <% if (item.available) { %>
+                <a
+                  href="<%= item.href %>"
+                  class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition duration-150 <%= locals.activeNav === item.key ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' %>"
+                  <%- locals.activeNav === item.key ? 'aria-current="page"' : '' %>
+                >
+                  <%- include('icon', { iconName: item.icon, iconClass: 'h-4.5 w-4.5 shrink-0 transition-colors ' + (locals.activeNav === item.key ? 'text-brand-600' : 'text-slate-400 group-hover:text-slate-600') }) %>
+                  <span class="truncate"><%= item.label %></span>
+                </a>
+              <% } else { %>
+                <div
+                  class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400"
+                  aria-disabled="true"
+                >
+                  <%- include('icon', { iconName: item.icon, iconClass: 'h-4.5 w-4.5 shrink-0 text-slate-300' }) %>
+                  <span class="truncate"><%= item.label %></span>
+                  <span class="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-500">Segera</span>
+                </div>
+              <% } %>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    <% }); %>
+  </nav>
+
+  <div class="border-t border-slate-100 p-3.5">
+    <% if (locals.currentBusiness) { %>
+      <a href="/settings" class="group block rounded-xl border border-slate-200/80 bg-slate-50/60 p-3 transition hover:border-brand-200 hover:bg-brand-50/40">
+        <div class="flex items-center gap-2.5">
+          <span class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white text-brand-600 shadow-xs border border-slate-200/60">
+            <%- include('icon', { iconName: 'building', iconClass: 'h-4 w-4' }) %>
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-xs font-semibold text-slate-900 group-hover:text-brand-700"><%= locals.currentBusiness.name %></p>
+            <p class="truncate text-[11px] text-slate-500"><%= locals.currentBusiness.role === 'OWNER' ? 'Pemilik Usaha' : 'Staf Bisnis' %></p>
+          </div>
+          <%- include('icon', { iconName: 'chevronRight', iconClass: 'h-4 w-4 text-slate-400 group-hover:text-brand-600' }) %>
+        </div>
+      </a>
+    <% } else { %>
+      <div class="rounded-xl border border-slate-200 bg-slate-50 p-3.5">
+        <p class="text-xs font-semibold text-slate-800">Rental Reminder</p>
+        <p class="mt-1 text-[11px] leading-relaxed text-slate-500">
+          Masuk untuk mengelola penyewaan dan pengingat tagihan.
+        </p>
+        <a href="/login" class="mt-2.5 inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+          Masuk ke akun
+          <%- include('icon', { iconName: 'arrow', iconClass: 'h-3.5 w-3.5' }) %>
+        </a>
+      </div>
+    <% } %>
+  </div>
+</aside>

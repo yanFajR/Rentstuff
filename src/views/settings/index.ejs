@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<%- include('../partials/head') %>
+<body class="min-h-full bg-slate-50 text-slate-900">
+  <a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+  >
+    Lewati ke konten utama
+  </a>
+
+  <div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-xs lg:hidden"></div>
+
+  <%- include('../partials/sidebar') %>
+
+  <div class="flex min-h-screen flex-col lg:pl-72">
+    <%- include('../partials/topbar') %>
+
+    <main id="main-content" class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <%- include('../partials/flash') %>
+
+        <!-- Header -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Pengaturan Bisnis &amp; Akun</h1>
+            <p class="mt-1 text-xs sm:text-sm text-slate-500">
+              Kelola identitas usaha rental, informasi kontak WhatsApp, dan preferensi akun Anda.
+            </p>
+          </div>
+          <a href="/dashboard" class="btn btn-secondary self-start sm:self-auto">
+            <%- include('../partials/icon', { iconName: 'dashboard', iconClass: 'h-4 w-4 text-slate-500' }) %>
+            Kembali ke ringkasan
+          </a>
+        </div>
+
+        <%
+          const completenessItems = [
+            { label: 'Nomor WhatsApp bisnis', filled: Boolean(values.whatsappNumber) },
+            { label: 'Alamat operasional', filled: Boolean(values.address) },
+            { label: 'Deskripsi layanan usaha', filled: Boolean(values.description) },
+          ];
+          const completedCount = completenessItems.filter(function (item) { return item.filled; }).length;
+        %>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Main Business Settings Form -->
+          <section class="card overflow-hidden lg:col-span-2">
+            <header class="border-b border-slate-100 bg-slate-50/50 px-5 py-4">
+              <h2 class="text-base font-bold text-slate-900">Profil Usaha Rental</h2>
+              <p class="mt-0.5 text-xs text-slate-500">
+                Informasi ini ditampilkan di kop invoice dan pesan pengingat WhatsApp ke pelanggan.
+              </p>
+            </header>
+
+            <form method="post" action="/settings/business" class="space-y-5 px-5 py-6" data-submit-loading>
+              <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+
+              <div class="grid gap-5 sm:grid-cols-2">
+                <div>
+                  <label for="businessName" class="field-label">
+                    Nama bisnis rental <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="businessName"
+                    name="businessName"
+                    type="text"
+                    required
+                    maxlength="100"
+                    value="<%= values.businessName %>"
+                    aria-invalid="<%= errors.businessName ? 'true' : 'false' %>"
+                    <%- errors.businessName ? 'aria-describedby="business-name-error"' : '' %>
+                    class="input-field <%= errors.businessName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                    placeholder="Contoh: Berkah Rental Mobil"
+                  />
+                  <% if (errors.businessName) { %>
+                    <p id="business-name-error" class="field-error"><%= errors.businessName %></p>
+                  <% } %>
+                </div>
+
+                <div>
+                  <label for="ownerName" class="field-label">
+                    Nama pemilik / penanggung jawab <span class="text-rose-500">*</span>
+                  </label>
+                  <input
+                    id="ownerName"
+                    name="ownerName"
+                    type="text"
+                    required
+                    maxlength="100"
+                    value="<%= values.ownerName %>"
+                    aria-invalid="<%= errors.ownerName ? 'true' : 'false' %>"
+                    <%- errors.ownerName ? 'aria-describedby="owner-name-error"' : '' %>
+                    class="input-field <%= errors.ownerName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                    placeholder="Nama pemilik akun"
+                  />
+                  <% if (errors.ownerName) { %>
+                    <p id="owner-name-error" class="field-error"><%= errors.ownerName %></p>
+                  <% } %>
+                </div>
+              </div>
+
+              <div>
+                <label for="whatsappNumber" class="field-label">
+                  Nomor WhatsApp resmi bisnis
+                </label>
+                <div class="relative">
+                  <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                    <%- include('../partials/icon', { iconName: 'phone', iconClass: 'h-4 w-4' }) %>
+                  </span>
+                  <input
+                    id="whatsappNumber"
+                    name="whatsappNumber"
+                    type="tel"
+                    inputmode="tel"
+                    maxlength="20"
+                    value="<%= values.whatsappNumber %>"
+                    placeholder="0812-3456-7890"
+                    aria-invalid="<%= errors.whatsappNumber ? 'true' : 'false' %>"
+                    <%- errors.whatsappNumber ? 'aria-describedby="whatsapp-error"' : 'aria-describedby="whatsapp-hint"' %>
+                    class="input-field pl-10 <%= errors.whatsappNumber ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  />
+                </div>
+                <% if (errors.whatsappNumber) { %>
+                  <p id="whatsapp-error" class="field-error"><%= errors.whatsappNumber %></p>
+                <% } else { %>
+                  <p id="whatsapp-hint" class="field-hint">
+                    Format diawali 08xx atau 628xx. Sistem otomatis menyimpannya dalam format internasional standar 628xx.
+                  </p>
+                <% } %>
+              </div>
+
+              <div>
+                <label for="address" class="field-label">Alamat operasional</label>
+                <textarea
+                  id="address"
+                  name="address"
+                  rows="2"
+                  maxlength="255"
+                  aria-invalid="<%= errors.address ? 'true' : 'false' %>"
+                  <%- errors.address ? 'aria-describedby="address-error"' : '' %>
+                  class="input-field <%= errors.address ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Alamat kantor, garasi, atau titik serah terima barang (opsional)"
+                ><%= values.address %></textarea>
+                <% if (errors.address) { %>
+                  <p id="address-error" class="field-error"><%= errors.address %></p>
+                <% } %>
+              </div>
+
+              <div>
+                <label for="description" class="field-label">Deskripsi layanan usaha</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="3"
+                  maxlength="500"
+                  aria-invalid="<%= errors.description ? 'true' : 'false' %>"
+                  <%- errors.description ? 'aria-describedby="description-error"' : '' %>
+                  class="input-field <%= errors.description ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Jenis armada atau peralatan yang disewakan (opsional)"
+                ><%= values.description %></textarea>
+                <% if (errors.description) { %>
+                  <p id="description-error" class="field-error"><%= errors.description %></p>
+                <% } %>
+              </div>
+
+              <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-5">
+                <a href="/dashboard" class="btn btn-secondary">Batal</a>
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                >
+                  <%- include('../partials/icon', { iconName: 'save', iconClass: 'h-4 w-4' }) %>
+                  Simpan perubahan
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Sidebar Information Cards -->
+          <div class="space-y-5">
+            <!-- Profile Completeness Card -->
+            <section class="card p-5">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-900">Kelengkapan Profil</h3>
+                <span class="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-bold text-brand-700">
+                  <%= Math.round((completedCount / 3) * 100) %>%
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-slate-500"><%= completedCount %> dari 3 informasi opsional terisi.</p>
+              
+              <div class="mt-3.5 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-brand-600 transition-all duration-300 <%= completedCount === 0 ? 'w-0' : completedCount === 1 ? 'w-1/3' : completedCount === 2 ? 'w-2/3' : 'w-full' %>"></div>
+              </div>
+
+              <ul class="mt-4 space-y-2.5 text-xs">
+                <% completenessItems.forEach(function (item) { %>
+                  <li class="flex items-center gap-2.5">
+                    <% if (item.filled) { %>
+                      <span class="grid h-5 w-5 place-items-center rounded-full bg-emerald-100 text-emerald-700 shrink-0">
+                        <%- include('../partials/icon', { iconName: 'check', iconClass: 'h-3.5 w-3.5' }) %>
+                      </span>
+                      <span class="font-medium text-slate-700"><%= item.label %> terisi</span>
+                    <% } else { %>
+                      <span class="grid h-5 w-5 place-items-center rounded-full bg-slate-100 text-slate-400 shrink-0">
+                        <%- include('../partials/icon', { iconName: 'close', iconClass: 'h-3 w-3' }) %>
+                      </span>
+                      <span class="text-slate-500"><%= item.label %> belum terisi</span>
+                    <% } %>
+                  </li>
+                <% }); %>
+              </ul>
+            </section>
+
+            <!-- Current User & Session Card -->
+            <section class="card p-5">
+              <h3 class="text-sm font-bold text-slate-900">Informasi Akun</h3>
+              <div class="mt-4 flex items-center gap-3">
+                <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-600 text-sm font-bold text-white shadow-xs">
+                  <%= locals.currentUser.initials %>
+                </span>
+                <div class="min-w-0 flex-1">
+                  <p class="truncate text-sm font-bold text-slate-900"><%= account.name %></p>
+                  <p class="truncate text-xs text-slate-500"><%= account.email %></p>
+                </div>
+              </div>
+
+              <dl class="mt-4 space-y-2.5 divide-y divide-slate-100 text-xs">
+                <div class="flex items-center justify-between gap-3 pt-2">
+                  <dt class="text-slate-500">Peran pengguna</dt>
+                  <dd class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 font-bold text-slate-800">
+                    <%= account.role === 'OWNER' ? 'Pemilik Usaha' : account.role %>
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-3 pt-2.5">
+                  <dt class="text-slate-500">Bisnis aktif</dt>
+                  <dd class="max-w-[12rem] truncate font-semibold text-slate-800"><%= business.name %></dd>
+                </div>
+              </dl>
+
+              <form method="post" action="/logout" class="mt-5" data-submit-loading>
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+                <button type="submit" class="btn btn-danger w-full justify-center">
+                  <%- include('../partials/icon', { iconName: 'logout', iconClass: 'h-4 w-4' }) %>
+                  Keluar dari akun
+                </button>
+              </form>
+            </section>
+
+            <!-- Security Assurance Note -->
+            <section class="rounded-2xl border border-slate-200/90 bg-white p-5 text-xs text-slate-600 shadow-xs">
+              <div class="flex items-center gap-2 font-bold text-slate-900">
+                <%- include('../partials/icon', { iconName: 'shield', iconClass: 'h-4 w-4 text-emerald-600' }) %>
+                <span>Keamanan Data &amp; Privasi</span>
+              </div>
+              <ul class="mt-3 space-y-2 leading-relaxed text-slate-500">
+                <li class="flex items-start gap-2">
+                  <span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span>Kata sandi disimpan menggunakan enkripsi hashing satu arah bcrypt yang aman.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span>Isolasi penyewa ketat menjamin bisnis lain tidak dapat mengakses data Anda.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span>Seluruh transaksi formulir dilindungi token otentikasi CSRF berkala.</span>
+                </li>
+              </ul>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <%- include('../partials/foot') %>
+  </div>
+</body>
+</html>

@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output & coverage
+dist/
+coverage/
+*.tsbuildinfo
+
+# Generated frontend assets (npm run css:build)
+public/css/app.css
+public/css/app.css.map
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Local SQLite database (Prisma resolves file:./dev.db relative to prisma/)
+prisma/*.db
+prisma/*.db-journal
+prisma/*.db-wal
+prisma/*.db-shm
+prisma/*.pre-restore-*.db
+
+# Backup files
+backups/
+*.db.bak
+*.db.sha256
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# Editor & OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

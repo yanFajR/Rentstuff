@@ -1,0 +1,63 @@
+<%
+  const maxValue = Math.max(
+    1,
+    ...trend.flatMap(function (point) {
+      return [point.invoiceTotal, point.paymentsTotal];
+    }),
+  );
+  const barClass = function (value) {
+    if (value <= 0) return 'w-0';
+    const ratio = value / maxValue;
+    if (ratio <= 0.25) return 'w-1/4';
+    if (ratio <= 0.5) return 'w-1/2';
+    if (ratio <= 0.75) return 'w-3/4';
+    return 'w-full';
+  };
+  const hasTrendData = trend.some(function (point) {
+    return point.invoiceTotal > 0 || point.paymentsTotal > 0;
+  });
+%>
+<section class="card overflow-hidden">
+  <header class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+    <div>
+      <h3 class="text-sm font-bold tracking-tight text-slate-900">Tren Tagihan & Pembayaran</h3>
+      <p class="text-xs text-slate-500">Aktivitas 6 bulan terakhir berdasarkan penerbitan dan realisasi kas masuk.</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-4 text-xs font-medium text-slate-600">
+      <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-brand-600"></span>Tagihan Baru</span>
+      <span class="inline-flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>Pembayaran Masuk</span>
+    </div>
+  </header>
+
+  <% if (!hasTrendData) { %>
+    <div class="px-5 py-10 text-center">
+      <div class="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-400">
+        <%- include('icon', { iconName: 'chart', iconClass: 'h-5 w-5' }) %>
+      </div>
+      <p class="mt-2.5 text-sm font-semibold text-slate-800">Belum ada data tren</p>
+      <p class="mt-0.5 text-xs text-slate-500">Grafik tren akan terisi otomatis seiring adanya tagihan dan pembayaran tercatat.</p>
+    </div>
+  <% } else { %>
+    <div class="space-y-4 px-5 py-5">
+      <% trend.forEach(function (point) { %>
+        <div class="grid gap-2 sm:grid-cols-[7rem_1fr] sm:items-center">
+          <div class="text-xs font-semibold text-slate-700"><%= point.label %></div>
+          <div class="space-y-2">
+            <div class="flex items-center gap-3">
+              <div class="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-brand-600 <%= barClass(point.invoiceTotal) %> transition-all duration-300"></div>
+              </div>
+              <span class="w-28 shrink-0 text-right text-xs font-medium tabular-nums text-slate-700"><%= formatRupiah(point.invoiceTotal) %></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+                <div class="h-full rounded-full bg-emerald-500 <%= barClass(point.paymentsTotal) %> transition-all duration-300"></div>
+              </div>
+              <span class="w-28 shrink-0 text-right text-xs font-medium tabular-nums text-emerald-700"><%= formatRupiah(point.paymentsTotal) %></span>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  <% } %>
+</section>

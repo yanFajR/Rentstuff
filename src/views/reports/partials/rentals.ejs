@@ -1,0 +1,174 @@
+<%
+  const listQuery = {
+    tab: 'rentals',
+    period: period.period,
+    from: period.from,
+    to: period.to,
+    q: filters.q,
+    status: filters.status,
+    sort: filters.sort,
+  };
+  const exportQuery = {
+    period: period.period,
+    from: period.from,
+    to: period.to,
+    q: filters.q,
+    status: filters.status,
+    sort: filters.sort,
+  };
+  const sortLabels = {
+    start_desc: 'Tanggal mulai terbaru',
+    start_asc: 'Tanggal mulai terlama',
+    created_desc: 'Terbaru dibuat',
+  };
+%>
+<section class="space-y-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h3 class="text-base font-bold text-slate-900">Laporan penyewaan</h3>
+      <p class="mt-0.5 text-xs text-slate-500">Periode acuan berdasarkan tanggal mulai penyewaan. Total tagihan dan pembayaran bersumber dari tagihan riil.</p>
+    </div>
+    <a href="<%= buildUrl('/reports/export/rentals', exportQuery) %>" class="btn btn-secondary">
+      <%- include('../../partials/icon', { iconName: 'download', iconClass: 'h-4 w-4 text-slate-500' }) %>
+      Unduh CSV
+    </a>
+  </header>
+
+  <!-- Filter & Search Toolbar -->
+  <form
+    method="get"
+    action="/reports"
+    class="grid gap-3 card p-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-center"
+    hx-get="/reports"
+    hx-target="#report-content"
+    hx-select="#report-content"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    hx-trigger="submit, keyup changed delay:400ms from:find input[name='q'], change from:find select[name='status'], change from:find select[name='sort']"
+  >
+    <input type="hidden" name="tab" value="rentals" />
+    <input type="hidden" name="period" value="<%= period.period %>" />
+    <input type="hidden" name="from" value="<%= period.from %>" />
+    <input type="hidden" name="to" value="<%= period.to %>" />
+    
+    <div class="relative lg:col-span-5">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+        <%- include('../../partials/icon', { iconName: 'search', iconClass: 'h-4 w-4' }) %>
+      </span>
+      <input
+        name="q"
+        type="search"
+        aria-label="Cari data"
+        value="<%= filters.q %>"
+        placeholder="Cari nomor penyewaan atau nama pelanggan..."
+        class="input-field pl-10"
+      />
+    </div>
+
+    <div class="lg:col-span-3">
+      <select name="status" aria-label="Filter status" class="select-field">
+        <option value="">Semua status penyewaan</option>
+        <option value="ACTIVE" <%= filters.status === 'ACTIVE' ? 'selected' : '' %>>Aktif</option>
+        <option value="COMPLETED" <%= filters.status === 'COMPLETED' ? 'selected' : '' %>>Selesai</option>
+        <option value="CANCELLED" <%= filters.status === 'CANCELLED' ? 'selected' : '' %>>Dibatalkan</option>
+      </select>
+    </div>
+
+    <div class="lg:col-span-3">
+      <select name="sort" aria-label="Urutkan" class="select-field">
+        <% Object.keys(sortLabels).forEach(function (key) { %>
+          <option value="<%= key %>" <%= filters.sort === key ? 'selected' : '' %>><%= sortLabels[key] %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="flex items-center justify-end lg:col-span-1">
+      <button type="submit" class="btn btn-secondary w-full" aria-label="Terapkan filter">
+        <%- include('../../partials/icon', { iconName: 'filter', iconClass: 'h-4 w-4' }) %>
+      </button>
+    </div>
+  </form>
+
+  <div class="card overflow-hidden">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
+      <div>
+        <h4 class="text-sm font-bold text-slate-900">Data Transaksi Penyewaan</h4>
+        <p class="text-xs text-slate-500"><%= formatNumber(report.pagination.total) %> penyewaan ditemukan pada periode terpilih</p>
+      </div>
+      <span class="text-[11px] font-medium text-slate-500">Tanggal acuan: Tanggal mulai</span>
+    </header>
+
+    <% if (report.rows.length === 0) { %>
+      <div class="px-5 py-16 text-center">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+          <%- include('../../partials/icon', { iconName: 'calendar', iconClass: 'h-6 w-6' }) %>
+        </span>
+        <p class="mt-3 text-sm font-bold text-slate-900">Tidak ada penyewaan pada filter ini</p>
+        <p class="mx-auto mt-1 max-w-sm text-xs text-slate-500">Coba ubah periode, status, atau bersihkan kata kunci pencarian.</p>
+      </div>
+    <% } else { %>
+      <div class="table-shell">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+          <thead>
+            <tr class="bg-slate-50/70 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <th scope="col" class="px-5 py-3.5">Nomor</th>
+              <th scope="col" class="px-4 py-3.5">Pelanggan</th>
+              <th scope="col" class="hidden px-4 py-3.5 md:table-cell">Barang/Jasa</th>
+              <th scope="col" class="hidden px-4 py-3.5 xl:table-cell">Periode</th>
+              <th scope="col" class="hidden px-4 py-3.5 md:table-cell">Harga</th>
+              <th scope="col" class="px-4 py-3.5">Status</th>
+              <th scope="col" class="hidden px-4 py-3.5 text-right xl:table-cell">Total Tagihan</th>
+              <th scope="col" class="hidden px-4 py-3.5 text-right 2xl:table-cell">Dibayar</th>
+              <th scope="col" class="px-4 py-3.5 text-right">Sisa Tagihan</th>
+              <th scope="col" class="hidden px-5 py-3.5 sm:table-cell"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% report.rows.forEach(function (row) { %>
+              <tr class="transition hover:bg-slate-50/70">
+                <td class="whitespace-nowrap px-5 py-3.5">
+                  <a href="/rentals/<%= row.id %>" class="font-bold text-slate-900 transition hover:text-brand-600"><%= row.rentalNumber %></a>
+                  <p class="mt-0.5 text-xs text-slate-500 sm:hidden"><%= row.customerName %></p>
+                </td>
+                <td class="px-4 py-3.5 font-medium text-slate-800"><%= row.customerName %></td>
+                <td class="hidden max-w-[12rem] px-4 py-3.5 md:table-cell">
+                  <span class="line-clamp-1 text-slate-700"><%= row.itemName %></span>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 xl:table-cell">
+                  <%= formatDate(row.startDate) %> – <%= formatDate(row.endDate) %>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 font-medium text-slate-800 md:table-cell"><%= formatRupiah(row.price) %></td>
+                <td class="px-4 py-3.5">
+                  <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold <%= rentalStatusClasses[row.status] || 'bg-slate-100 text-slate-500' %>">
+                    <%= rentalStatusLabels[row.status] || row.status %>
+                  </span>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-right font-medium text-slate-800 xl:table-cell">
+                  <p><%= formatRupiah(row.invoiceTotal) %></p>
+                  <p class="mt-0.5 text-[10px] font-normal text-slate-400"><%= formatNumber(row.invoiceCount) %> tagihan</p>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-right font-semibold text-emerald-700 2xl:table-cell"><%= formatRupiah(row.totalPaid) %></td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-right font-bold <%= row.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700' %>">
+                  <p><%= formatRupiah(row.outstanding) %></p>
+                  <p class="mt-0.5 text-[10px] font-normal text-slate-400">Dibayar <%= formatRupiah(row.totalPaid) %></p>
+                </td>
+                <td class="hidden px-5 py-3.5 text-right sm:table-cell">
+                  <a href="/rentals/<%= row.id %>" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                    Detail <%- include('../../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-scroll-hint sm:hidden">Geser tabel ke samping untuk melihat rincian tagihan &amp; sisa.</p>
+    <% } %>
+
+    <%- include('../../partials/pagination', { pagination: report.pagination, path: '/reports', query: listQuery }) %>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200/90 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+    Total tagihan dan pembayaran dihitung dari tagihan serta pembayaran aktual. Tagihan dibatalkan tidak masuk total tagihan/sisa tagihan. Perubahan harga sewa setelah tagihan dibuat tidak mengubah nilai historis tagihan.
+  </div>
+</section>

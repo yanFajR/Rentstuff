@@ -1,0 +1,120 @@
+<% if (mode === 'create') { %>
+  <div class="space-y-2">
+    <label for="rentalRecordId" class="block text-xs font-semibold text-slate-700">
+      Pilih Transaksi Penyewaan <span class="text-rose-500">*</span>
+    </label>
+    <select
+      id="rentalRecordId"
+      name="rentalRecordId"
+      required
+      hx-get="/invoices/rental-summary"
+      hx-target="#rental-summary"
+      hx-swap="innerHTML"
+      hx-trigger="change"
+      aria-invalid="<%= errors.rentalRecordId ? 'true' : 'false' %>"
+      <%- errors.rentalRecordId ? 'aria-describedby="rental-record-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs focus:outline-hidden focus:ring-2 <%= errors.rentalRecordId ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+    >
+      <option value="">Pilih transaksi sewa yang akan ditagihkan</option>
+      <% rentals.forEach(function (rental) { %>
+        <option value="<%= rental.id %>" <%= values.rentalRecordId === rental.id ? 'selected' : '' %>>
+          <%= rental.rentalNumber %> · <%= rental.customer.name %> · <%= rental.itemName %> (<%= formatRupiah(rental.price) %>)
+        </option>
+      <% }); %>
+    </select>
+    <% if (errors.rentalRecordId) { %>
+      <p id="rental-record-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.rentalRecordId %></p>
+    <% } %>
+    <% if (rentals.length === 0) { %>
+      <p class="mt-1.5 text-xs text-amber-700">
+        Belum ada transaksi penyewaan aktif yang siap ditagihkan.
+        <a href="/rentals/new" class="font-semibold underline">Catat penyewaan baru</a> terlebih dahulu.
+      </p>
+    <% } %>
+    <div id="rental-summary">
+      <%- include('rental-summary', { rental: selectedRental, oob: false }) %>
+    </div>
+  </div>
+<% } else { %>
+  <div class="rounded-xl border border-slate-200 bg-slate-50/80 p-4 text-xs shadow-2xs">
+    <p class="font-bold text-slate-900"><%= invoice.rentalRecord.rentalNumber %> · <%= invoice.rentalRecord.itemName %></p>
+    <p class="mt-1 text-slate-600">Pelanggan: <span class="font-medium text-slate-800"><%= invoice.rentalRecord.customer.name %></span> (<%= invoice.rentalRecord.customer.whatsappNumber %>)</p>
+    <p class="mt-1 text-slate-600">Harga sewa awal: <span class="font-bold tabular-nums text-slate-900"><%= formatRupiah(invoice.rentalRecord.price) %></span></p>
+    <p class="mt-1.5 text-[11px] text-slate-400">Transaksi penyewaan terkunci dan tidak dapat dialihkan pada faktur yang telah terbit.</p>
+  </div>
+<% } %>
+
+<div class="grid gap-4 sm:grid-cols-2 pt-2">
+  <div>
+    <label for="issueDate" class="block text-xs font-semibold text-slate-700">Tanggal Penerbitan Faktur <span class="text-rose-500">*</span></label>
+    <input
+      id="issueDate"
+      name="issueDate"
+      type="date"
+      required
+      value="<%= values.issueDate %>"
+      aria-invalid="<%= errors.issueDate ? 'true' : 'false' %>"
+      <%- errors.issueDate ? 'aria-describedby="issue-date-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs focus:outline-hidden focus:ring-2 <%= errors.issueDate ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+    />
+    <% if (errors.issueDate) { %>
+      <p id="issue-date-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.issueDate %></p>
+    <% } %>
+  </div>
+
+  <div>
+    <label for="dueDate" class="block text-xs font-semibold text-slate-700">Tanggal Jatuh Tempo Pembayaran <span class="text-rose-500">*</span></label>
+    <input
+      id="dueDate"
+      name="dueDate"
+      type="date"
+      required
+      value="<%= values.dueDate %>"
+      aria-invalid="<%= errors.dueDate ? 'true' : 'false' %>"
+      <%- errors.dueDate ? 'aria-describedby="due-date-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs focus:outline-hidden focus:ring-2 <%= errors.dueDate ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+    />
+    <% if (errors.dueDate) { %>
+      <p id="due-date-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.dueDate %></p>
+    <% } %>
+  </div>
+</div>
+
+<div class="pt-2">
+  <%- include('total-field', { value: values.totalAmount, errors: errors, oob: false }) %>
+</div>
+
+<div class="pt-2">
+  <label for="description" class="block text-xs font-semibold text-slate-700">Keterangan Tagihan <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+  <input
+    id="description"
+    name="description"
+    type="text"
+    maxlength="500"
+    value="<%= values.description %>"
+    aria-invalid="<%= errors.description ? 'true' : 'false' %>"
+    <%- errors.description ? 'aria-describedby="description-error"' : '' %>
+    class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.description ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+    placeholder="Contoh: Tagihan sewa Toyota Avanza Veloz 3 hari"
+  />
+  <% if (errors.description) { %>
+    <p id="description-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.description %></p>
+  <% } %>
+</div>
+
+<div class="pt-2">
+  <label for="notes" class="block text-xs font-semibold text-slate-700">Catatan Khusus <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+  <textarea
+    id="notes"
+    name="notes"
+    rows="3"
+    maxlength="500"
+    aria-invalid="<%= errors.notes ? 'true' : 'false' %>"
+    <%- errors.notes ? 'aria-describedby="invoice-notes-error"' : '' %>
+    class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.notes ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+    placeholder="Informasi rekening bank atau instruksi pelunasan..."
+  ><%= values.notes %></textarea>
+  <% if (errors.notes) { %>
+    <p id="invoice-notes-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.notes %></p>
+  <% } %>
+</div>

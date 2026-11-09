@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<%- include('../partials/head') %>
+<body class="min-h-full bg-slate-50 text-slate-900">
+  <div class="grid min-h-screen lg:grid-cols-2">
+    <%- include('../partials/auth-visual', {
+      heading: 'Buka akun bisnis penyewaan Anda dalam hitungan menit.',
+      description: 'Satu akun terisolasi khusus bisnis Anda. Langsung aktif sebagai pemilik, bebas atur profil, dan mulai kelola tagihan.'
+    }) %>
+
+    <section class="flex items-center justify-center px-4 py-10 sm:px-8">
+      <div class="w-full max-w-md">
+        <!-- Mobile Brand Header -->
+        <div class="mb-6 flex items-center gap-3 lg:hidden">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-brand-600 text-white shadow-xs">
+            <%- include('../partials/icon', { iconName: 'bell', iconClass: 'h-5 w-5' }) %>
+          </span>
+          <div>
+            <p class="text-base font-bold text-slate-900"><%= locals.appName %></p>
+            <p class="text-xs font-medium text-slate-500">Sistem Manajemen Rental &amp; Piutang</p>
+          </div>
+        </div>
+
+        <div class="card p-6 sm:p-8 shadow-sm border-slate-200/90">
+          <h2 class="text-2xl font-bold tracking-tight text-slate-900">Daftar Akun Baru</h2>
+          <p class="mt-1 text-xs sm:text-sm text-slate-500">Buat identitas akun pemilik dan ruang kerja bisnis Anda.</p>
+
+          <% if (formError) { %>
+            <div class="mt-5 flex items-start gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-3 text-xs leading-relaxed text-rose-800" role="alert">
+              <%- include('../partials/icon', { iconName: 'alert', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-rose-600' }) %>
+              <p><%= formError %></p>
+            </div>
+          <% } %>
+
+          <form method="post" action="/register" class="mt-6 space-y-4" data-submit-loading>
+            <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+
+            <div>
+              <label for="name" class="field-label">Nama lengkap pemilik <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                  <%- include('../partials/icon', { iconName: 'user', iconClass: 'h-4 w-4' }) %>
+                </span>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  autocomplete="name"
+                  value="<%= values.name %>"
+                  aria-invalid="<%= errors.name ? 'true' : 'false' %>"
+                  <%- errors.name ? 'aria-describedby="name-error"' : '' %>
+                  class="input-field pl-10 <%= errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Nama pemilik / pengelola"
+                />
+              </div>
+              <% if (errors.name) { %>
+                <p id="name-error" class="field-error"><%= errors.name %></p>
+              <% } %>
+            </div>
+
+            <div>
+              <label for="email" class="field-label">Email bisnis <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                  <%- include('../partials/icon', { iconName: 'calendar', iconClass: 'h-4 w-4' }) %>
+                </span>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autocomplete="email"
+                  value="<%= values.email %>"
+                  aria-invalid="<%= errors.email ? 'true' : 'false' %>"
+                  <%- errors.email ? 'aria-describedby="email-error"' : '' %>
+                  class="input-field pl-10 <%= errors.email ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="nama@usaha-rental.com"
+                />
+              </div>
+              <% if (errors.email) { %>
+                <p id="email-error" class="field-error"><%= errors.email %></p>
+              <% } %>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label for="password" class="field-label">Kata sandi <span class="text-rose-500">*</span></label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minlength="8"
+                  maxlength="72"
+                  autocomplete="new-password"
+                  aria-invalid="<%= errors.password ? 'true' : 'false' %>"
+                  <%- errors.password ? 'aria-describedby="password-error"' : 'aria-describedby="password-hint"' %>
+                  class="input-field <%= errors.password ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Min. 8 karakter"
+                />
+                <% if (errors.password) { %>
+                  <p id="password-error" class="field-error"><%= errors.password %></p>
+                <% } else { %>
+                  <p id="password-hint" class="field-hint">Kombinasi huruf &amp; angka.</p>
+                <% } %>
+              </div>
+
+              <div>
+                <label for="confirmPassword" class="field-label">Ulangi kata sandi <span class="text-rose-500">*</span></label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  minlength="8"
+                  maxlength="72"
+                  autocomplete="new-password"
+                  aria-invalid="<%= errors.confirmPassword ? 'true' : 'false' %>"
+                  <%- errors.confirmPassword ? 'aria-describedby="confirm-password-error"' : '' %>
+                  class="input-field <%= errors.confirmPassword ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Ketik ulang sandi"
+                />
+                <% if (errors.confirmPassword) { %>
+                  <p id="confirm-password-error" class="field-error"><%= errors.confirmPassword %></p>
+                <% } %>
+              </div>
+            </div>
+
+            <div>
+              <label for="businessName" class="field-label">Nama usaha rental <span class="text-rose-500">*</span></label>
+              <div class="relative">
+                <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                  <%- include('../partials/icon', { iconName: 'invoice', iconClass: 'h-4 w-4' }) %>
+                </span>
+                <input
+                  id="businessName"
+                  name="businessName"
+                  type="text"
+                  required
+                  autocomplete="organization"
+                  value="<%= values.businessName %>"
+                  aria-invalid="<%= errors.businessName ? 'true' : 'false' %>"
+                  <%- errors.businessName ? 'aria-describedby="business-name-error"' : '' %>
+                  class="input-field pl-10 <%= errors.businessName ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : '' %>"
+                  placeholder="Contoh: Sejahtera Rental Mobil &amp; Motor"
+                />
+              </div>
+              <% if (errors.businessName) { %>
+                <p id="business-name-error" class="field-error"><%= errors.businessName %></p>
+              <% } %>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary w-full justify-center py-2.5 text-sm"
+            >
+              <%- include('../partials/icon', { iconName: 'check', iconClass: 'h-4 w-4' }) %>
+              Daftar &amp; Buat Ruang Kerja
+            </button>
+          </form>
+
+          <div class="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-slate-500">
+            Sudah memiliki akun?
+            <a href="/login" class="font-bold text-brand-600 transition hover:text-brand-700">Masuk di sini</a>
+          </div>
+        </div>
+
+        <p class="mt-6 text-center text-xs text-slate-400">
+          &copy; <%= locals.currentYear %> <%= locals.appName %> · Solusi Manajemen Rental Terpercaya
+        </p>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

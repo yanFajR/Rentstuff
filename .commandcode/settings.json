@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Shell(node --version)",
+      "Shell(npm:*)",
+      "Shell(npx --version)",
+      "powershell",
+      "Shell(kill:*)",
+      "Shell(:NODE_ENV=production:*)",
+      "Shell(:DATABASE_URL=file:./qa-stage5.db:*)",
+      "Shell(:SESSION_SECRET=qa-stage5-session-secret-0123456789abcdef:*)",
+      "Shell(:APP_URL=http://localhost:3000:*)",
+      "Shell(:SESSION_COOKIE_SECURE=false:*)",
+      "Shell(:PORT=3000:*)",
+      "Shell(node dist/main.js)"
+    ],
+    "deny": [],
+    "defaultMode": "default"
+  }
+}

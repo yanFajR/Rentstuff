@@ -1,0 +1,81 @@
+<form
+  method="post"
+  action="/customers/quick-add"
+  hx-post="/customers/quick-add"
+  hx-target="#quick-customer-form"
+  hx-swap="innerHTML"
+  class="space-y-4"
+  data-submit-loading
+>
+  <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+
+  <div>
+    <label for="quick-name" class="block text-xs font-semibold text-slate-700">Nama Pelanggan <span class="text-rose-500">*</span></label>
+    <input
+      id="quick-name"
+      name="name"
+      type="text"
+      required
+      maxlength="100"
+      value="<%= values.name %>"
+      aria-invalid="<%= errors.name ? 'true' : 'false' %>"
+      <%- errors.name ? 'aria-describedby="quick-name-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+      placeholder="Nama lengkap pelanggan"
+    />
+    <% if (errors.name) { %>
+      <p id="quick-name-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.name %></p>
+    <% } %>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="quick-whatsapp" class="block text-xs font-semibold text-slate-700">No. WhatsApp <span class="text-rose-500">*</span></label>
+      <input
+        id="quick-whatsapp"
+        name="whatsappNumber"
+        type="tel"
+        inputmode="tel"
+        required
+        maxlength="20"
+        value="<%= values.whatsappNumber %>"
+        aria-invalid="<%= errors.whatsappNumber ? 'true' : 'false' %>"
+        <%- errors.whatsappNumber ? 'aria-describedby="quick-whatsapp-error"' : '' %>
+        class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.whatsappNumber ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+        placeholder="0812-3456-7890"
+      />
+      <% if (errors.whatsappNumber) { %>
+        <p id="quick-whatsapp-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.whatsappNumber %></p>
+      <% } %>
+    </div>
+
+    <div>
+      <label for="quick-email" class="block text-xs font-semibold text-slate-700">Email <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+      <input
+        id="quick-email"
+        name="email"
+        type="email"
+        maxlength="254"
+        value="<%= values.email %>"
+        aria-invalid="<%= errors.email ? 'true' : 'false' %>"
+        <%- errors.email ? 'aria-describedby="quick-email-error"' : '' %>
+        class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.email ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+        placeholder="nama@email.com"
+      />
+      <% if (errors.email) { %>
+        <p id="quick-email-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.email %></p>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+    <button type="button" data-modal-close class="btn btn-secondary btn-sm">Batal</button>
+    <button
+      type="submit"
+      class="btn btn-primary btn-sm shadow-xs"
+    >
+      <%- include('../partials/icon', { iconName: 'plus', iconClass: 'h-3.5 w-3.5' }) %>
+      Simpan & Pilih Pelanggan
+    </button>
+  </div>
+</form>

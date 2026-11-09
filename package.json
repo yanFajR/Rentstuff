@@ -1,0 +1,126 @@
+{
+  "name": "rental-reminder",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Asisten pengelolaan tagihan dan pengingat pembayaran untuk bisnis rental",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "prebuild": "npm run db:generate && npm run css:build",
+    "build": "nest build",
+    "start": "nest start",
+    "dev": "npm run css:build && concurrently -k -n app,css -c blue,magenta \"nest start --watch\" \"npm:css:watch\"",
+    "start:prod": "node dist/main.js",
+    "css:build": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --minify",
+    "css:watch": "tailwindcss -i ./src/styles/app.css -o ./public/css/app.css --watch",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset",
+    "db:backup": "node scripts/backup-sqlite.mjs",
+    "db:restore": "node scripts/restore-sqlite.mjs",
+    "db:check": "node scripts/sqlite-check.mjs",
+    "perf:seed": "node scripts/performance-seed.mjs",
+    "perf:test": "node scripts/performance-test.mjs",
+    "reminders:run": "node dist/reminders/run-reminders.js",
+    "typecheck": "tsc --noEmit -p tsconfig.spec.json",
+    "lint": "eslint \"{src,tests}/**/*.ts\" --max-warnings=0",
+    "lint:fix": "eslint \"{src,tests}/**/*.ts\" --fix",
+    "format": "prettier --write \"src/**/*.{ts,css}\" \"tests/**/*.ts\" \"docs/**/*.md\" \"*.{json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,css}\" \"tests/**/*.ts\" \"docs/**/*.md\" \"*.{json,md}\"",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:cov": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "pretest:e2e": "node scripts/reset-test-db.mjs",
+    "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./tests/jest-e2e.json --runInBand",
+    "verify": "npm run typecheck && npm run lint && npm run test && npm run test:e2e && npm run build",
+    "postinstall": "prisma generate"
+  },
+  "dependencies": {
+    "@nestjs/common": "^12.4.0",
+    "@nestjs/config": "^12.1.1",
+    "@nestjs/core": "^12.4.0",
+    "@nestjs/platform-express": "^12.4.0",
+    "@nestjs/schedule": "^12.0.3",
+    "@prisma/client": "6.19.3",
+    "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
+    "ejs": "^7.0.2",
+    "express-rate-limit": "^8.7.3",
+    "express-session": "^1.19.0",
+    "helmet": "^8.3.0",
+    "htmx.org": "^2.0.11",
+    "joi": "^18.3.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@nestjs/cli": "^12.0.12",
+    "@nestjs/schematics": "^12.0.13",
+    "@nestjs/testing": "^12.4.0",
+    "@tailwindcss/cli": "^4.3.5",
+    "@types/express": "^5.0.6",
+    "@types/express-session": "^1.19.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.6",
+    "@types/supertest": "^7.2.1",
+    "concurrently": "^10.0.7",
+    "cross-env": "^10.1.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "jest": "^30.5.2",
+    "prettier": "^3.9.10",
+    "prisma": "6.19.3",
+    "supertest": "^7.3.2",
+    "tailwindcss": "^4.3.5",
+    "ts-jest": "^29.4.15",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": "src",
+    "testRegex": ".*\\.spec\\.ts$",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "tsconfig": "<rootDir>/../tsconfig.spec.json",
+          "useESM": true,
+          "diagnostics": {
+            "ignoreCodes": [
+              151002
+            ]
+          }
+        }
+      ]
+    },
+    "collectCoverageFrom": [
+      "**/*.ts",
+      "!**/*.spec.ts",
+      "!**/*.module.ts",
+      "!main.ts",
+      "!app.setup.ts"
+    ],
+    "coverageDirectory": "../coverage",
+    "testEnvironment": "node",
+    "clearMocks": true
+  }
+}

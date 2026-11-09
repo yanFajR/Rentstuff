@@ -1,0 +1,199 @@
+<%
+  const listQuery = {
+    tab: 'receivables',
+    period: period.period,
+    from: period.from,
+    to: period.to,
+    q: filters.q,
+    aging: filters.aging,
+  };
+  const exportQuery = { q: filters.q, aging: filters.aging };
+%>
+<section class="space-y-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h3 class="text-base font-bold text-slate-900">Laporan piutang pelanggan</h3>
+      <p class="mt-0.5 text-xs text-slate-500">Kondisi riil tagihan aktif saat laporan dibuka. Menampilkan seluruh tagihan dengan sisa saldo &gt; 0.</p>
+    </div>
+    <a href="<%= buildUrl('/reports/export/receivables', exportQuery) %>" class="btn btn-secondary">
+      <%- include('../../partials/icon', { iconName: 'download', iconClass: 'h-4 w-4 text-slate-500' }) %>
+      Unduh CSV
+    </a>
+  </header>
+
+  <!-- Realtime Alert Note -->
+  <div class="flex items-start gap-3 rounded-2xl border border-amber-200/90 bg-amber-50/70 px-4 py-3 text-xs leading-relaxed text-amber-900">
+    <%- include('../../partials/icon', { iconName: 'alert', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-amber-600' }) %>
+    <p>
+      <span class="font-bold">Piutang adalah posisi keuangan saat ini (real-time).</span>
+      Filter rentang tanggal periode tidak membatasi daftar piutang berjalan; gunakan kelompok umur piutang (aging) atau kolom pencarian untuk menyaring data.
+    </p>
+  </div>
+
+  <!-- Aging Buckets Tiles -->
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <% report.groups.forEach(function (group) { %>
+      <a
+        href="<%= buildUrl('/reports', { tab: 'receivables', period: period.period, from: period.from, to: period.to, q: filters.q, aging: group.key }) %>"
+        class="card p-4 transition hover:border-brand-300 hover:shadow-xs <%= filters.aging === group.key ? 'border-brand-500 ring-2 ring-brand-500/20 bg-brand-50/20' : '' %>"
+      >
+        <p class="text-[10px] font-bold uppercase tracking-wider <%= group.className %>"><%= group.label %></p>
+        <p class="mt-1.5 text-lg font-bold text-slate-900"><%= formatRupiah(group.totalOutstanding) %></p>
+        <p class="mt-1 text-xs text-slate-500"><%= formatNumber(group.count) %> tagihan</p>
+      </a>
+    <% }); %>
+  </div>
+
+  <!-- Active Total Bar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 card p-4 border-amber-200/80 bg-linear-to-r from-amber-50/40 to-white">
+    <div>
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-900">Total Piutang Pada Filter Ini</p>
+      <p class="mt-1 text-2xl font-bold tracking-tight text-amber-700"><%= formatRupiah(report.totalOutstanding) %></p>
+    </div>
+    <% if (filters.aging) { %>
+      <a href="<%= buildUrl('/reports', { tab: 'receivables', period: period.period, from: period.from, to: period.to, q: filters.q }) %>" class="btn btn-secondary text-xs">
+        Tampilkan semua kelompok umur
+      </a>
+    <% } %>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <form
+    method="get"
+    action="/reports"
+    class="flex flex-col gap-3 card p-4 sm:flex-row sm:items-center"
+    hx-get="/reports"
+    hx-target="#report-content"
+    hx-select="#report-content"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    hx-trigger="submit, keyup changed delay:400ms from:find input[name='q'], change from:find select[name='aging']"
+  >
+    <input type="hidden" name="tab" value="receivables" />
+    <input type="hidden" name="period" value="<%= period.period %>" />
+    <input type="hidden" name="from" value="<%= period.from %>" />
+    <input type="hidden" name="to" value="<%= period.to %>" />
+    
+    <div class="relative flex-1">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+        <%- include('../../partials/icon', { iconName: 'search', iconClass: 'h-4 w-4' }) %>
+      </span>
+      <input
+        name="q"
+        type="search"
+        aria-label="Cari data"
+        value="<%= filters.q %>"
+        placeholder="Cari nomor tagihan atau nama pelanggan..."
+        class="input-field pl-10"
+      />
+    </div>
+
+    <div class="sm:w-64">
+      <select name="aging" aria-label="Filter kelompok piutang" class="select-field">
+        <option value="">Semua kelompok umur</option>
+        <% report.groups.forEach(function (group) { %>
+          <option value="<%= group.key %>" <%= filters.aging === group.key ? 'selected' : '' %>><%= group.label %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-secondary shrink-0">
+      <%- include('../../partials/icon', { iconName: 'filter', iconClass: 'h-4 w-4' }) %>
+      Terapkan
+    </button>
+  </form>
+
+  <div class="card overflow-hidden">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
+      <div>
+        <h4 class="text-sm font-bold text-slate-900">Daftar Tagihan Belum Lunas</h4>
+        <p class="text-xs text-slate-500"><%= formatNumber(report.pagination.total) %> tagihan aktif dengan sisa tagihan</p>
+      </div>
+      <span class="text-[11px] font-medium text-slate-500">Hari terlambat dihitung per tanggal WIB</span>
+    </header>
+
+    <% if (report.rows.length === 0) { %>
+      <div class="px-5 py-16 text-center">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-600">
+          <%- include('../../partials/icon', { iconName: 'check', iconClass: 'h-6 w-6' }) %>
+        </span>
+        <p class="mt-3 text-sm font-bold text-slate-900">Tidak ada piutang pada kriteria ini</p>
+        <p class="mx-auto mt-1 max-w-sm text-xs text-slate-500">Seluruh tagihan aktif sudah lunas atau tidak ada yang sesuai dengan filter.</p>
+      </div>
+    <% } else { %>
+      <div class="table-shell">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+          <caption class="sr-only">Daftar piutang pelanggan</caption>
+          <thead>
+            <tr class="bg-slate-50/70 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <th scope="col" class="px-5 py-3.5">Tagihan</th>
+              <th scope="col" class="px-4 py-3.5">Pelanggan</th>
+              <th scope="col" class="hidden px-4 py-3.5 2xl:table-cell">WhatsApp</th>
+              <th scope="col" class="hidden px-4 py-3.5 2xl:table-cell">Terbit</th>
+              <th scope="col" class="hidden px-4 py-3.5 sm:table-cell">Jatuh Tempo</th>
+              <th scope="col" class="hidden px-4 py-3.5 text-right 2xl:table-cell">Total</th>
+              <th scope="col" class="hidden px-4 py-3.5 text-right 2xl:table-cell">Dibayar</th>
+              <th scope="col" class="px-4 py-3.5 text-right">Sisa Piutang</th>
+              <th scope="col" class="px-4 py-3.5">Terlambat</th>
+              <th scope="col" class="px-4 py-3.5">Status</th>
+              <th scope="col" class="hidden px-5 py-3.5 sm:table-cell text-right">Aksi</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% report.rows.forEach(function (row) { %>
+              <tr class="transition hover:bg-slate-50/70">
+                <td class="whitespace-nowrap px-5 py-3.5">
+                  <a href="/invoices/<%= row.id %>" class="font-bold text-slate-900 transition hover:text-brand-600"><%= row.invoiceNumber %></a>
+                  <p class="mt-0.5 text-xs text-slate-500 sm:hidden"><%= row.customerName %></p>
+                </td>
+                <td class="px-4 py-3.5 font-medium text-slate-800">
+                  <a href="/customers/<%= row.customerId %>" class="transition hover:text-brand-600"><%= row.customerName %></a>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 2xl:table-cell"><%= row.customerWhatsApp %></td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 2xl:table-cell"><%= formatDate(row.issueDate) %></td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-600 sm:table-cell"><%= formatDate(row.dueDate) %></td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-right font-medium text-slate-700 2xl:table-cell"><%= formatRupiah(row.totalAmount) %></td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-right font-medium text-emerald-700 2xl:table-cell"><%= formatRupiah(row.totalPaid) %></td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-right font-bold text-amber-700"><%= formatRupiah(row.outstanding) %></td>
+                <td class="whitespace-nowrap px-4 py-3.5">
+                  <% if (row.daysLate > 0) { %>
+                    <span class="inline-flex rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                      <%= formatNumber(row.daysLate) %> hari
+                    </span>
+                  <% } else { %>
+                    <span class="text-xs text-slate-400">—</span>
+                  <% } %>
+                </td>
+                <td class="px-4 py-3.5">
+                  <span class="inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold <%= invoiceStatusClasses[row.status] %>">
+                    <%= invoiceStatusLabels[row.status] %>
+                  </span>
+                </td>
+                <td class="hidden px-5 py-3.5 text-right text-xs sm:table-cell">
+                  <div class="flex items-center justify-end gap-2">
+                    <% if (row.reminderJobId) { %>
+                      <a href="/reminders/<%= row.reminderJobId %>" class="btn btn-secondary btn-sm py-1 px-2.5 text-xs text-brand-700 border-brand-200 hover:bg-brand-50">
+                        <%- include('../../partials/icon', { iconName: 'bell', iconClass: 'h-3.5 w-3.5' }) %>
+                        Pengingat
+                      </a>
+                    <% } %>
+                    <a href="/invoices/<%= row.id %>" class="inline-flex items-center gap-1 font-semibold text-slate-600 hover:text-brand-600">
+                      Detail <%- include('../../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                    </a>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-scroll-hint sm:hidden">Geser tabel ke samping untuk melihat rincian jatuh tempo &amp; tombol aksi.</p>
+    <% } %>
+
+    <%- include('../../partials/pagination', { pagination: report.pagination, path: '/reports', query: listQuery }) %>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200/90 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+    Tagihan lunas dan dibatalkan tidak masuk laporan piutang. Hari keterlambatan dihitung dari selisih tanggal kalender Indonesia dan tidak bernilai negatif jika belum lewat jatuh tempo.
+  </div>
+</section>

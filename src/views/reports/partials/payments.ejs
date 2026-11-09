@@ -1,0 +1,208 @@
+<%
+  const listQuery = {
+    tab: 'payments',
+    period: period.period,
+    from: period.from,
+    to: period.to,
+    q: filters.q,
+    method: filters.method,
+    status: filters.status,
+    sort: filters.sort,
+  };
+  const exportQuery = {
+    period: period.period,
+    from: period.from,
+    to: period.to,
+    q: filters.q,
+    method: filters.method,
+    status: filters.status,
+    sort: filters.sort,
+  };
+  const sortLabels = {
+    date_desc: 'Tanggal terbaru',
+    date_asc: 'Tanggal terlama',
+    amount_desc: 'Nominal terbesar',
+  };
+  const methods = [
+    { key: 'CASH', label: 'Tunai' },
+    { key: 'BANK_TRANSFER', label: 'Transfer Bank' },
+    { key: 'E_WALLET', label: 'E-Wallet' },
+    { key: 'OTHER', label: 'Lainnya' },
+  ];
+%>
+<section class="space-y-4">
+  <header class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h3 class="text-base font-bold text-slate-900">Laporan pembayaran</h3>
+      <p class="mt-0.5 text-xs text-slate-500">Periode acuan berdasarkan tanggal pembayaran aktual. Pembayaran dibatalkan dipertahankan untuk jejak audit.</p>
+    </div>
+    <a href="<%= buildUrl('/reports/export/payments', exportQuery) %>" class="btn btn-secondary">
+      <%- include('../../partials/icon', { iconName: 'download', iconClass: 'h-4 w-4 text-slate-500' }) %>
+      Unduh CSV
+    </a>
+  </header>
+
+  <!-- Metric Breakdown by Method & Status -->
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+    <div class="card p-4 border-emerald-200 bg-emerald-50/50 xl:col-span-2">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-800">Pembayaran Valid (Kas Masuk)</p>
+      <p class="mt-1.5 text-2xl font-bold tracking-tight text-emerald-900"><%= formatRupiah(report.summary.totalValid) %></p>
+      <p class="mt-1 text-xs text-emerald-700 font-medium"><%= formatNumber(report.summary.validCount) %> transaksi valid</p>
+    </div>
+    <% methods.forEach(function (method) { %>
+      <div class="card p-4">
+        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500"><%= method.label %></p>
+        <p class="mt-1.5 text-lg font-bold text-slate-900"><%= formatRupiah(report.summary.methods[method.key].total) %></p>
+        <p class="mt-1 text-[11px] text-slate-500"><%= formatNumber(report.summary.methods[method.key].count) %> transaksi</p>
+      </div>
+    <% }); %>
+    <div class="card p-4 border-rose-200 bg-rose-50/40">
+      <p class="text-[11px] font-semibold uppercase tracking-wider text-rose-800">Dibatalkan</p>
+      <p class="mt-1.5 text-lg font-bold text-rose-900"><%= formatRupiah(report.summary.totalDibatalkan) %></p>
+      <p class="mt-1 text-[11px] text-rose-600 font-medium"><%= formatNumber(report.summary.voidCount) %> void · Tidak masuk kas</p>
+    </div>
+  </div>
+
+  <!-- Filter & Search Toolbar -->
+  <form
+    method="get"
+    action="/reports"
+    class="grid gap-3 card p-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-center"
+    hx-get="/reports"
+    hx-target="#report-content"
+    hx-select="#report-content"
+    hx-swap="outerHTML"
+    hx-push-url="true"
+    hx-trigger="submit, keyup changed delay:400ms from:find input[name='q'], change from:find select[name='method'], change from:find select[name='status'], change from:find select[name='sort']"
+  >
+    <input type="hidden" name="tab" value="payments" />
+    <input type="hidden" name="period" value="<%= period.period %>" />
+    <input type="hidden" name="from" value="<%= period.from %>" />
+    <input type="hidden" name="to" value="<%= period.to %>" />
+    
+    <div class="relative lg:col-span-4">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+        <%- include('../../partials/icon', { iconName: 'search', iconClass: 'h-4 w-4' }) %>
+      </span>
+      <input
+        name="q"
+        type="search"
+        aria-label="Cari data"
+        value="<%= filters.q %>"
+        placeholder="Tagihan, pelanggan, atau referensi..."
+        class="input-field pl-10"
+      />
+    </div>
+
+    <div class="lg:col-span-3">
+      <select name="method" aria-label="Filter metode pembayaran" class="select-field">
+        <option value="">Semua metode pembayaran</option>
+        <% methods.forEach(function (method) { %>
+          <option value="<%= method.key %>" <%= filters.method === method.key ? 'selected' : '' %>><%= method.label %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="lg:col-span-2">
+      <select name="status" aria-label="Filter status" class="select-field">
+        <option value="">Valid &amp; dibatalkan</option>
+        <option value="valid" <%= filters.status === 'valid' ? 'selected' : '' %>>Valid saja</option>
+        <option value="void" <%= filters.status === 'void' ? 'selected' : '' %>>Dibatalkan saja</option>
+      </select>
+    </div>
+
+    <div class="lg:col-span-2">
+      <select name="sort" aria-label="Urutkan" class="select-field">
+        <% Object.keys(sortLabels).forEach(function (key) { %>
+          <option value="<%= key %>" <%= filters.sort === key ? 'selected' : '' %>><%= sortLabels[key] %></option>
+        <% }); %>
+      </select>
+    </div>
+
+    <div class="flex items-center justify-end lg:col-span-1">
+      <button type="submit" class="btn btn-secondary w-full" aria-label="Terapkan filter">
+        <%- include('../../partials/icon', { iconName: 'filter', iconClass: 'h-4 w-4' }) %>
+      </button>
+    </div>
+  </form>
+
+  <div class="card overflow-hidden">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/50 px-5 py-3.5">
+      <div>
+        <h4 class="text-sm font-bold text-slate-900">Data Transaksi Pembayaran</h4>
+        <p class="text-xs text-slate-500"><%= formatNumber(report.pagination.total) %> pembayaran ditemukan · <%= formatNumber(report.summary.transactionCount) %> transaksi pada periode</p>
+      </div>
+      <span class="text-[11px] font-medium text-slate-500">Tanggal acuan: Tanggal bayar</span>
+    </header>
+
+    <% if (report.rows.length === 0) { %>
+      <div class="px-5 py-16 text-center">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+          <%- include('../../partials/icon', { iconName: 'wallet', iconClass: 'h-6 w-6' }) %>
+        </span>
+        <p class="mt-3 text-sm font-bold text-slate-900">Tidak ada pembayaran pada filter ini</p>
+        <p class="mx-auto mt-1 max-w-sm text-xs text-slate-500">Coba ubah periode, metode pembayaran, atau status transaksi.</p>
+      </div>
+    <% } else { %>
+      <div class="table-shell">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+          <thead>
+            <tr class="bg-slate-50/70 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              <th scope="col" class="px-5 py-3.5">Tanggal</th>
+              <th scope="col" class="px-4 py-3.5">Tagihan</th>
+              <th scope="col" class="hidden px-4 py-3.5 sm:table-cell">Pelanggan</th>
+              <th scope="col" class="px-4 py-3.5 text-right">Nominal</th>
+              <th scope="col" class="hidden px-4 py-3.5 md:table-cell">Metode</th>
+              <th scope="col" class="hidden px-4 py-3.5 lg:table-cell">Referensi</th>
+              <th scope="col" class="hidden px-4 py-3.5 xl:table-cell">Dicatat Oleh</th>
+              <th scope="col" class="px-4 py-3.5">Status</th>
+              <th scope="col" class="hidden px-5 py-3.5 sm:table-cell"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% report.rows.forEach(function (row) { %>
+              <tr class="transition hover:bg-slate-50/70">
+                <td class="whitespace-nowrap px-5 py-3.5 text-xs text-slate-600"><%= formatDate(row.paymentDate) %></td>
+                <td class="whitespace-nowrap px-4 py-3.5">
+                  <a href="/invoices/<%= row.invoiceId %>" class="font-bold text-slate-900 transition hover:text-brand-600"><%= row.invoiceNumber %></a>
+                  <p class="mt-0.5 text-xs text-slate-500 sm:hidden"><%= row.customerName %></p>
+                </td>
+                <td class="hidden px-4 py-3.5 font-medium text-slate-800 sm:table-cell"><%= row.customerName %></td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-right font-bold <%= row.voidedAt ? 'text-slate-400 line-through' : 'text-slate-900' %>">
+                  <%= formatRupiah(row.amount) %>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-slate-600 md:table-cell">
+                  <%= paymentMethodLabels[row.method] || row.method %>
+                </td>
+                <td class="hidden max-w-[10rem] px-4 py-3.5 text-xs text-slate-500 lg:table-cell">
+                  <span class="line-clamp-1"><%= row.reference || '—' %></span>
+                </td>
+                <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 xl:table-cell"><%= row.recordedBy %></td>
+                <td class="px-4 py-3.5">
+                  <% if (row.voidedAt) { %>
+                    <span class="inline-flex rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700">Dibatalkan</span>
+                    <p class="mt-0.5 text-[10px] text-slate-400">Tidak dihitung kas</p>
+                  <% } else { %>
+                    <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">Valid</span>
+                  <% } %>
+                </td>
+                <td class="hidden px-5 py-3.5 text-right sm:table-cell">
+                  <a href="/payments/<%= row.id %>" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                    Detail <%- include('../../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-scroll-hint sm:hidden">Geser tabel ke samping untuk melihat metode dan nomor referensi.</p>
+    <% } %>
+
+    <%- include('../../partials/pagination', { pagination: report.pagination, path: '/reports', query: listQuery }) %>
+  </div>
+
+  <div class="rounded-2xl border border-slate-200/90 bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+    Pembayaran valid adalah pembayaran yang tidak dibatalkan. Nominal pembayaran yang dibatalkan ditampilkan terpisah untuk riwayat audit dan tidak masuk total kas diterima.
+  </div>
+</section>

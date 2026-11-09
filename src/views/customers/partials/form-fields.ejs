@@ -1,0 +1,100 @@
+<div class="space-y-4">
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="name" class="block text-xs font-semibold text-slate-700">Nama Pelanggan <span class="text-rose-500">*</span></label>
+      <input
+        id="name"
+        name="name"
+        type="text"
+        required
+        maxlength="100"
+        autocomplete="name"
+        value="<%= values.name %>"
+        aria-invalid="<%= errors.name ? 'true' : 'false' %>"
+        <%- errors.name ? 'aria-describedby="name-error"' : '' %>
+        class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.name ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+        placeholder="Contoh: Budi Santoso"
+      />
+      <% if (errors.name) { %>
+        <p id="name-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.name %></p>
+      <% } %>
+    </div>
+
+    <div>
+      <label for="whatsappNumber" class="block text-xs font-semibold text-slate-700">Nomor WhatsApp Aktif <span class="text-rose-500">*</span></label>
+      <div class="relative mt-1.5">
+        <input
+          id="whatsappNumber"
+          name="whatsappNumber"
+          type="tel"
+          inputmode="tel"
+          required
+          maxlength="20"
+          value="<%= values.whatsappNumber %>"
+          aria-invalid="<%= errors.whatsappNumber ? 'true' : 'false' %>"
+          <%- errors.whatsappNumber ? 'aria-describedby="whatsapp-error"' : 'aria-describedby="whatsapp-hint"' %>
+          class="block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.whatsappNumber ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+          placeholder="0812-3456-7890"
+        />
+      </div>
+      <% if (errors.whatsappNumber) { %>
+        <p id="whatsapp-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.whatsappNumber %></p>
+      <% } else { %>
+        <p id="whatsapp-hint" class="mt-1.5 text-xs text-slate-400">Gunakan format lokal (08xxx) atau internasional (628xxx).</p>
+      <% } %>
+    </div>
+  </div>
+
+  <div>
+    <label for="email" class="block text-xs font-semibold text-slate-700">Alamat Email <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+    <input
+      id="email"
+      name="email"
+      type="email"
+      maxlength="254"
+      autocomplete="email"
+      value="<%= values.email %>"
+      aria-invalid="<%= errors.email ? 'true' : 'false' %>"
+      <%- errors.email ? 'aria-describedby="email-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.email ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+      placeholder="budi.santoso@example.com"
+    />
+    <% if (errors.email) { %>
+      <p id="email-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.email %></p>
+    <% } %>
+  </div>
+
+  <div>
+    <label for="address" class="block text-xs font-semibold text-slate-700">Alamat Domisili <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+    <textarea
+      id="address"
+      name="address"
+      rows="2"
+      maxlength="255"
+      aria-invalid="<%= errors.address ? 'true' : 'false' %>"
+      <%- errors.address ? 'aria-describedby="address-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.address ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+      placeholder="Alamat lengkap tempat tinggal atau kantor pelanggan..."
+    ><%= values.address %></textarea>
+    <% if (errors.address) { %>
+      <p id="address-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.address %></p>
+    <% } %>
+  </div>
+
+  <div>
+    <label for="notes" class="block text-xs font-semibold text-slate-700">Catatan Khusus <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+    <textarea
+      id="notes"
+      name="notes"
+      rows="2"
+      maxlength="500"
+      aria-invalid="<%= errors.notes ? 'true' : 'false' %>"
+      <%- errors.notes ? 'aria-describedby="notes-error"' : '' %>
+      class="mt-1.5 block w-full rounded-xl border bg-white px-3.5 py-2.5 text-sm text-slate-900 shadow-2xs transition placeholder:text-slate-400 focus:outline-hidden focus:ring-2 <%= errors.notes ? 'border-rose-300 focus:border-rose-500 focus:ring-rose-500/20' : 'border-slate-200 focus:border-brand-500 focus:ring-brand-500/20' %>"
+      placeholder="Catatan profil pelanggan, referensi, atau riwayat sewa..."
+    ><%= values.notes %></textarea>
+    <% if (errors.notes) { %>
+      <p id="notes-error" class="mt-1.5 text-xs font-medium text-rose-600"><%= errors.notes %></p>
+    <% } %>
+  </div>
+</div>

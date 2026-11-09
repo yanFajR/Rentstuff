@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<%- include('../partials/head') %>
+<body class="min-h-full bg-slate-50 text-slate-900">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Lewati ke konten utama</a>
+  <div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-xs lg:hidden"></div>
+  <%- include('../partials/sidebar') %>
+
+  <div class="flex min-h-screen flex-col lg:pl-72">
+    <%- include('../partials/topbar') %>
+
+    <main id="main-content" class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <%- include('../partials/flash') %>
+
+        <!-- Header -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <a href="/customers" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-brand-700">
+              <%- include('../partials/icon', { iconName: 'chevronLeft', iconClass: 'h-3.5 w-3.5' }) %>
+              Kembali ke daftar pelanggan
+            </a>
+            <div class="mt-2 flex flex-wrap items-center gap-2.5">
+              <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"><%= customer.name %></h2>
+              <% if (customer.archivedAt) { %>
+                <span class="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-500 border border-slate-200/60">Diarsipkan</span>
+              <% } else { %>
+                <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/60">Aktif</span>
+              <% } %>
+            </div>
+            <p class="mt-0.5 text-xs sm:text-sm text-slate-500">Terdaftar sejak <%= formatDate(customer.createdAt) %></p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <% if (!customer.archivedAt) { %>
+              <a
+                href="/rentals/new?customerId=<%= customer.id %>"
+                class="btn btn-primary btn-sm shadow-xs"
+              >
+                <%- include('../partials/icon', { iconName: 'plus', iconClass: 'h-3.5 w-3.5' }) %>
+                Buat Penyewaan
+              </a>
+              <a
+                href="/customers/<%= customer.id %>/edit"
+                class="btn btn-secondary btn-sm"
+              >
+                <%- include('../partials/icon', { iconName: 'edit', iconClass: 'h-3.5 w-3.5' }) %>
+                Edit Profil
+              </a>
+              <form method="post" action="/customers/<%= customer.id %>/archive" data-confirm="Arsipkan pelanggan ini? Data pelanggan dan riwayat transaksi tetap tersimpan aman." data-submit-loading>
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+                <button
+                  type="submit"
+                  class="btn btn-danger btn-sm"
+                >
+                  <%- include('../partials/icon', { iconName: 'archive', iconClass: 'h-3.5 w-3.5' }) %>
+                  Arsipkan
+                </button>
+              </form>
+            <% } else { %>
+              <form method="post" action="/customers/<%= customer.id %>/restore" data-submit-loading>
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+                <button
+                  type="submit"
+                  class="btn btn-primary btn-sm shadow-xs"
+                >
+                  <%- include('../partials/icon', { iconName: 'restore', iconClass: 'h-3.5 w-3.5' }) %>
+                  Pulihkan Pelanggan
+                </button>
+              </form>
+            <% } %>
+          </div>
+        </div>
+
+        <% if (customer.archivedAt) { %>
+          <div class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs sm:text-sm text-amber-900 shadow-2xs">
+            <%- include('../partials/icon', { iconName: 'archive', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-amber-600' }) %>
+            <p>
+              Pelanggan ini telah diarsipkan sejak <span class="font-semibold"><%= formatDate(customer.archivedAt) %></span>. Seluruh riwayat transaksi tetap tersimpan, namun nama pelanggan tidak akan muncul pada dropdown pembuatan penyewaan baru.
+            </p>
+          </div>
+        <% } %>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Profile Card -->
+          <section class="card overflow-hidden lg:col-span-2">
+            <header class="border-b border-slate-100 px-5 py-4">
+              <h3 class="text-sm font-bold tracking-tight text-slate-900">Informasi Kontak & Domisili</h3>
+            </header>
+            <dl class="grid gap-x-6 gap-y-5 px-5 py-5 sm:grid-cols-2">
+              <div>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Nomor WhatsApp</dt>
+                <dd class="mt-1 flex items-center gap-2 text-sm font-bold text-slate-900">
+                  <span class="grid h-7 w-7 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
+                    <%- include('../partials/icon', { iconName: 'phone', iconClass: 'h-4 w-4' }) %>
+                  </span>
+                  <%= customer.whatsappNumber %>
+                </dd>
+              </div>
+              <div>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Alamat Email</dt>
+                <dd class="mt-1 text-sm font-medium text-slate-800"><%= customer.email || '— Tidak dicantumkan —' %></dd>
+              </div>
+              <div class="sm:col-span-2 border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Alamat Domisili</dt>
+                <dd class="mt-1 whitespace-pre-line text-sm text-slate-800 leading-relaxed"><%= customer.address || '— Tidak ada alamat —' %></dd>
+              </div>
+              <div class="sm:col-span-2 border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Catatan Khusus</dt>
+                <dd class="mt-1 whitespace-pre-line text-sm text-slate-600 leading-relaxed"><%= customer.notes || '— Tidak ada catatan —' %></dd>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Waktu Ditambahkan</dt>
+                <dd class="mt-1 text-xs text-slate-500"><%= formatDateTime(customer.createdAt) %></dd>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Terakhir Diperbarui</dt>
+                <dd class="mt-1 text-xs text-slate-500"><%= formatDateTime(customer.updatedAt) %></dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- Sidebar Activity Stats -->
+          <div class="space-y-6">
+            <section class="card overflow-hidden p-5">
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Frekuensi Sewa</p>
+              <p class="mt-2 text-3xl font-bold tracking-tight tabular-nums text-slate-900"><%= formatNumber(customer._count.rentals) %></p>
+              <p class="mt-1 text-xs text-slate-500">Total seluruh transaksi penyewaan tercatat</p>
+            </section>
+
+            <section class="card overflow-hidden p-5 border-brand-100 bg-brand-50/40">
+              <div class="flex items-center gap-2">
+                <div class="grid h-7 w-7 place-items-center rounded-lg bg-brand-600 text-white shadow-2xs">
+                  <%- include('../partials/icon', { iconName: 'shield', iconClass: 'h-4 w-4' }) %>
+                </div>
+                <h3 class="text-xs font-bold text-brand-950 uppercase tracking-wider">Keamanan & Arsip</h3>
+              </div>
+              <p class="mt-2 text-xs leading-relaxed text-slate-600">
+                Pengarsipan data pelanggan menjaga integritas pembukuan tanpa menghapus invoice atau bukti pembayaran yang pernah diterbitkan.
+              </p>
+            </section>
+          </div>
+
+          <!-- Tagihan & Piutang Pelanggan -->
+          <section class="card overflow-hidden lg:col-span-3">
+            <header class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 class="text-sm font-bold tracking-tight text-slate-900">Tagihan & Rekap Piutang Pelanggan</h3>
+                <p class="text-xs text-slate-500">Seluruh riwayat faktur yang ditagihkan kepada pelanggan ini.</p>
+              </div>
+              <a href="/invoices" class="text-xs font-semibold text-brand-600 hover:text-brand-700">Semua tagihan</a>
+            </header>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 border-b border-slate-100 bg-slate-50/40 p-4">
+              <div class="rounded-xl border border-slate-200/80 bg-white p-3.5 shadow-2xs">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Tagihan</p>
+                <p class="mt-1 text-xl font-bold tabular-nums text-slate-900"><%= formatRupiah(financials.billedAmount) %></p>
+              </div>
+              <div class="rounded-xl border border-emerald-200/80 bg-white p-3.5 shadow-2xs">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Total Pembayaran Diterima</p>
+                <p class="mt-1 text-xl font-bold tabular-nums text-emerald-700"><%= formatRupiah(financials.paidAmount) %></p>
+              </div>
+              <div class="rounded-xl border border-amber-200/80 bg-white p-3.5 shadow-2xs">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-700">Sisa Piutang Belum Lunas</p>
+                <p class="mt-1 text-xl font-bold tabular-nums <%= financials.outstandingAmount > 0 ? 'text-amber-700' : 'text-emerald-700' %>"><%= formatRupiah(financials.outstandingAmount) %></p>
+              </div>
+            </div>
+
+            <% if (invoices.length === 0) { %>
+              <div class="px-5 py-12 text-center">
+                <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+                  <%- include('../partials/icon', { iconName: 'invoice', iconClass: 'h-6 w-6' }) %>
+                </div>
+                <p class="mt-3 text-sm font-bold text-slate-900">Belum ada tagihan untuk pelanggan ini</p>
+                <p class="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+                  Faktur tagihan yang dibuat dari penyewaan pelanggan ini akan otomatis tercatat di sini.
+                </p>
+              </div>
+            <% } else { %>
+              <div class="table-shell">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
+                  <thead>
+                    <tr class="bg-slate-50/75 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <th scope="col" class="px-5 py-3.5">No. Tagihan</th>
+                      <th scope="col" class="hidden px-4 py-3.5 md:table-cell">No. Sewa</th>
+                      <th scope="col" class="hidden px-4 py-3.5 sm:table-cell">Jatuh Tempo</th>
+                      <th scope="col" class="px-4 py-3.5 text-right">Total Tagihan</th>
+                      <th scope="col" class="hidden px-4 py-3.5 text-right md:table-cell">Dibayar</th>
+                      <th scope="col" class="px-4 py-3.5 text-right">Sisa Piutang</th>
+                      <th scope="col" class="px-4 py-3.5">Status</th>
+                      <th scope="col" class="px-5 py-3.5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <% invoices.forEach(function (invoice) { %>
+                      <tr class="transition hover:bg-slate-50/60">
+                        <td class="whitespace-nowrap px-5 py-3.5">
+                          <a href="/invoices/<%= invoice.id %>" class="font-semibold text-slate-900 hover:text-brand-600"><%= invoice.invoiceNumber %></a>
+                        </td>
+                        <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 md:table-cell"><%= invoice.rentalRecord.rentalNumber %></td>
+                        <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-600 sm:table-cell"><%= formatDate(invoice.dueDate) %></td>
+                        <td class="whitespace-nowrap px-4 py-3.5 text-right font-medium tabular-nums text-slate-800"><%= formatRupiah(invoice.totalAmount) %></td>
+                        <td class="hidden whitespace-nowrap px-4 py-3.5 text-right font-medium tabular-nums text-emerald-700 md:table-cell"><%= formatRupiah(invoice.summary.totalPaid) %></td>
+                        <td class="whitespace-nowrap px-4 py-3.5 text-right font-semibold tabular-nums <%= invoice.summary.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700' %>"><%= formatRupiah(invoice.summary.outstanding) %></td>
+                        <td class="px-4 py-3.5 whitespace-nowrap">
+                          <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold <%= invoiceStatusClasses[invoice.summary.status] %>">
+                            <%= invoiceStatusLabels[invoice.summary.status] %>
+                          </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                          <a href="/invoices/<%= invoice.id %>" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+                            Detail
+                            <%- include('../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </section>
+
+          <!-- Riwayat Transaksi Penyewaan Pelanggan -->
+          <section class="card overflow-hidden lg:col-span-3">
+            <header class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+              <div>
+                <h3 class="text-sm font-bold tracking-tight text-slate-900">Riwayat Transaksi Penyewaan</h3>
+                <p class="text-xs text-slate-500">Daftar unit atau barang yang pernah disewa oleh pelanggan ini.</p>
+              </div>
+              <% if (!customer.archivedAt) { %>
+                <a href="/rentals/new?customerId=<%= customer.id %>" class="btn btn-secondary btn-sm">
+                  <%- include('../partials/icon', { iconName: 'plus', iconClass: 'h-3.5 w-3.5' }) %>
+                  Tambah Penyewaan
+                </a>
+              <% } %>
+            </header>
+
+            <% if (customer.rentals.length === 0) { %>
+              <div class="px-5 py-12 text-center">
+                <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+                  <%- include('../partials/icon', { iconName: 'calendar', iconClass: 'h-6 w-6' }) %>
+                </div>
+                <p class="mt-3 text-sm font-bold text-slate-900">Belum ada riwayat penyewaan</p>
+                <p class="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+                  Pelanggan ini belum memiliki catatan penyewaan barang atau unit aktif.
+                </p>
+              </div>
+            <% } else { %>
+              <div class="table-shell">
+                <table class="min-w-full divide-y divide-slate-100 text-sm">
+                  <thead>
+                    <tr class="bg-slate-50/75 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <th scope="col" class="px-5 py-3.5">No. Sewa</th>
+                      <th scope="col" class="px-4 py-3.5">Barang / Unit</th>
+                      <th scope="col" class="px-4 py-3.5">Periode Sewa</th>
+                      <th scope="col" class="px-4 py-3.5 text-right">Tarif</th>
+                      <th scope="col" class="px-4 py-3.5">Status</th>
+                      <th scope="col" class="px-5 py-3.5 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <% customer.rentals.forEach(function (rental) { %>
+                      <tr class="transition hover:bg-slate-50/60">
+                        <td class="whitespace-nowrap px-5 py-3.5 font-semibold text-slate-900"><%= rental.rentalNumber %></td>
+                        <td class="px-4 py-3.5 text-slate-800 font-medium"><%= rental.itemName %></td>
+                        <td class="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600"><%= formatDate(rental.startDate) %> – <%= formatDate(rental.endDate) %></td>
+                        <td class="whitespace-nowrap px-4 py-3.5 text-right font-medium tabular-nums text-slate-900"><%= formatRupiah(rental.price) %></td>
+                        <td class="px-4 py-3.5 whitespace-nowrap">
+                          <span class="inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-semibold <%= rentalStatusClasses[rental.status] || 'bg-slate-100 text-slate-500' %>">
+                            <%= rentalStatusLabels[rental.status] || rental.status %>
+                          </span>
+                        </td>
+                        <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                          <a href="/rentals/<%= rental.id %>" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+                            Detail
+                            <%- include('../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                          </a>
+                        </td>
+                      </tr>
+                    <% }); %>
+                  </tbody>
+                </table>
+              </div>
+            <% } %>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <%- include('../partials/foot') %>
+  </div>
+</body>
+</html>

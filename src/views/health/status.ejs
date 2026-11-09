@@ -1,0 +1,38 @@
+<div class="space-y-4">
+  <div class="flex items-center gap-2.5">
+    <span class="relative flex h-2.5 w-2.5">
+      <span class="absolute inline-flex h-full w-full animate-ping rounded-full <%= isHealthy ? 'bg-emerald-400' : 'bg-rose-400' %> opacity-60"></span>
+      <span class="relative inline-flex h-2.5 w-2.5 rounded-full <%= isHealthy ? 'bg-emerald-500' : 'bg-rose-500' %>"></span>
+    </span>
+    <p class="text-sm font-bold text-slate-900">
+      <%= isHealthy ? 'Semua sistem berjalan normal' : 'Sebagian sistem terganggu' %>
+    </p>
+  </div>
+
+  <dl class="grid grid-cols-2 gap-3 text-xs">
+    <div class="rounded-xl border border-slate-200/80 bg-slate-50 p-3">
+      <dt class="text-[11px] font-medium text-slate-500">Kesiapan Layanan</dt>
+      <dd class="mt-1 font-bold <%= isHealthy ? 'text-emerald-700' : 'text-rose-700' %>">
+        <%= isHealthy ? 'Aktif & Siap' : 'Terganggu' %>
+      </dd>
+    </div>
+    <div class="rounded-xl border border-slate-200/80 bg-slate-50 p-3">
+      <dt class="text-[11px] font-medium text-slate-500">Uptime Server</dt>
+      <dd class="mt-1 font-bold text-slate-800"><%= uptimeLabel %></dd>
+    </div>
+  </dl>
+
+  <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-2 text-[11px] text-slate-400">
+    <span>Diperiksa: <%= checkedAt %></span>
+    <button
+      type="button"
+      hx-get="/health/partial"
+      hx-target="#system-status"
+      hx-swap="innerHTML"
+      class="inline-flex items-center gap-1 font-semibold text-brand-600 transition hover:text-brand-700"
+    >
+      Segarkan
+      <%- include('../partials/icon', { iconName: 'clock', iconClass: 'h-3.5 w-3.5' }) %>
+    </button>
+  </div>
+</div>

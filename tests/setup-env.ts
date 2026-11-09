@@ -1,0 +1,17 @@
+process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL = 'file:./test.db';
+process.env.APP_URL = 'http://localhost:3000';
+process.env.APP_TIMEZONE = 'Asia/Jakarta';
+process.env.SESSION_SECRET = 'test-session-secret-0123456789abcdef0123456789';
+process.env.SESSION_NAME = 'rental_reminder.sid';
+process.env.SESSION_TTL_HOURS = '1';
+process.env.SESSION_CLEANUP_INTERVAL_MS = '3600000';
+process.env.SESSION_COOKIE_SECURE = 'false';
+process.env.AUTH_LOGIN_RATE_LIMIT = '1000';
+process.env.AUTH_LOGIN_RATE_WINDOW_MS = '60000';
+process.env.AUTH_REGISTER_RATE_LIMIT = '1000';
+process.env.AUTH_REGISTER_RATE_WINDOW_MS = '60000';
+process.env.REPORT_EXPORT_RATE_LIMIT = '1000';
+process.env.MUTATION_RATE_LIMIT = '100000';
+process.env.SQLITE_JOURNAL_MODE = 'WAL';
+process.env.SQLITE_BUSY_TIMEOUT_MS = '5000';

@@ -1,0 +1,33 @@
+<% if (locals.flash) {
+  const flashStyles = {
+    success: 'border-emerald-200 bg-emerald-50/90 text-emerald-900',
+    error: 'border-rose-200 bg-rose-50/90 text-rose-900',
+    info: 'border-brand-200 bg-brand-50/90 text-brand-900',
+  };
+  const flashIcons = { success: 'check', error: 'alert', info: 'bell' };
+  const flashIconColors = {
+    success: 'text-emerald-600',
+    error: 'text-rose-600',
+    info: 'text-brand-600',
+  };
+%>
+  <div
+    class="flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-2xs transition-all duration-150 <%= flashStyles[locals.flash.type] || flashStyles.info %>"
+    role="status"
+    aria-live="polite"
+    data-flash
+  >
+    <%- include('icon', { iconName: flashIcons[locals.flash.type] || 'alert', iconClass: 'mt-0.5 h-4.5 w-4.5 shrink-0 ' + (flashIconColors[locals.flash.type] || flashIconColors.info) }) %>
+    <div class="min-w-0 flex-1 font-medium leading-relaxed">
+      <%= locals.flash.message %>
+    </div>
+    <button
+      type="button"
+      data-flash-close
+      class="-mr-1 -mt-0.5 rounded-lg p-1 text-slate-400 transition hover:bg-black/5 hover:text-slate-700"
+      aria-label="Tutup notifikasi"
+    >
+      <%- include('icon', { iconName: 'close', iconClass: 'h-4 w-4' }) %>
+    </button>
+  </div>
+<% } %>

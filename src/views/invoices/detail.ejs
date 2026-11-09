@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full bg-slate-50">
+<%- include('../partials/head') %>
+<body class="min-h-full bg-slate-50 text-slate-900">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-slate-900 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white">Lewati ke konten utama</a>
+  <div data-sidebar-backdrop class="fixed inset-0 z-30 hidden bg-slate-900/40 backdrop-blur-xs lg:hidden"></div>
+  <%- include('../partials/sidebar') %>
+
+  <div class="flex min-h-screen flex-col lg:pl-72">
+    <%- include('../partials/topbar') %>
+
+    <main id="main-content" class="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-7xl space-y-6">
+        <%- include('../partials/flash') %>
+
+        <!-- Header -->
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <a href="/invoices" class="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 transition hover:text-brand-700">
+              <%- include('../partials/icon', { iconName: 'chevronLeft', iconClass: 'h-3.5 w-3.5' }) %>
+              Kembali ke daftar tagihan
+            </a>
+            <div class="mt-2 flex flex-wrap items-center gap-2.5">
+              <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900"><%= invoice.invoiceNumber %></h2>
+              <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold <%= invoiceStatusClasses[summary.status] %>">
+                <%= invoiceStatusLabels[summary.status] %>
+              </span>
+            </div>
+            <p class="mt-0.5 text-xs sm:text-sm text-slate-500">
+              Diterbitkan <%= formatDate(invoice.issueDate) %> · Batas jatuh tempo <%= formatDate(invoice.dueDate) %>
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <% if (canEdit) { %>
+              <a
+                href="/invoices/<%= invoice.id %>/edit"
+                class="btn btn-secondary btn-sm"
+              >
+                <%- include('../partials/icon', { iconName: 'edit', iconClass: 'h-3.5 w-3.5' }) %>
+                Edit Faktur
+              </a>
+            <% } %>
+            <% if (canPay) { %>
+              <a
+                href="/invoices/<%= invoice.id %>/payments/new"
+                class="btn btn-primary btn-sm shadow-xs"
+              >
+                <%- include('../partials/icon', { iconName: 'wallet', iconClass: 'h-3.5 w-3.5' }) %>
+                Catat Pembayaran
+              </a>
+            <% } %>
+          </div>
+        </div>
+
+        <% if (invoice.cancelledAt) { %>
+          <div class="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-100 p-4 text-xs sm:text-sm text-slate-700 shadow-2xs">
+            <%- include('../partials/icon', { iconName: 'archive', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-slate-500' }) %>
+            <div>
+              <p class="font-bold">Faktur tagihan dibatalkan pada <%= formatDateTime(invoice.cancelledAt) %>.</p>
+              <p class="mt-0.5 text-slate-600">Alasan: <%= invoice.cancellationReason || '—' %></p>
+              <p class="mt-0.5 text-[11px] text-slate-500">Faktur batal diabaikan dari perhitungan total piutang dan tidak dapat menerima pelunasan.</p>
+            </div>
+          </div>
+        <% } else if (summary.status === 'OVERDUE') { %>
+          <div class="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50/80 p-4 text-xs sm:text-sm text-rose-800 shadow-2xs">
+            <%- include('../partials/icon', { iconName: 'alert', iconClass: 'mt-0.5 h-4 w-4 shrink-0 text-rose-600' }) %>
+            <p>
+              Tagihan ini telah melewati tanggal jatuh tempo (<span class="font-bold"><%= formatDate(invoice.dueDate) %></span>) dan masih memiliki sisa piutang tertunggak.
+            </p>
+          </div>
+        <% } %>
+
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Detail Tagihan Card -->
+          <section class="card overflow-hidden lg:col-span-2">
+            <header class="border-b border-slate-100 px-5 py-4">
+              <h3 class="text-sm font-bold tracking-tight text-slate-900">Rincian Faktur Tagihan</h3>
+            </header>
+            <dl class="grid gap-x-6 gap-y-5 px-5 py-5 sm:grid-cols-2">
+              <div>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Penerbit (Bisnis)</dt>
+                <dd class="mt-1 text-sm font-bold text-slate-900"><%= invoice.business.name %></dd>
+                <dd class="text-xs text-slate-500"><%= invoice.business.address || 'Alamat belum diatur' %></dd>
+                <dd class="text-xs text-slate-500"><%= invoice.business.whatsappNumber || '' %></dd>
+              </div>
+              <div>
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Pelanggan (Penyewa)</dt>
+                <dd class="mt-1">
+                  <a href="/customers/<%= invoice.rentalRecord.customer.id %>" class="text-sm font-bold text-slate-900 hover:text-brand-600"><%= invoice.rentalRecord.customer.name %></a>
+                </dd>
+                <dd class="text-xs font-medium text-emerald-600"><%= invoice.rentalRecord.customer.whatsappNumber %></dd>
+                <% if (invoice.rentalRecord.customer.email) { %>
+                  <dd class="text-xs text-slate-400"><%= invoice.rentalRecord.customer.email %></dd>
+                <% } %>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tautan Penyewaan</dt>
+                <dd class="mt-1">
+                  <a href="/rentals/<%= invoice.rentalRecord.id %>" class="text-sm font-bold text-brand-600 hover:text-brand-700"><%= invoice.rentalRecord.rentalNumber %></a>
+                </dd>
+                <dd class="text-xs text-slate-600 font-medium"><%= invoice.rentalRecord.itemName %></dd>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Periode Penyewaan</dt>
+                <dd class="mt-1 text-sm font-medium text-slate-800"><%= formatDate(invoice.rentalRecord.startDate) %> – <%= formatDate(invoice.rentalRecord.endDate) %></dd>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Tanggal Terbit</dt>
+                <dd class="mt-1 text-sm font-medium text-slate-800"><%= formatDate(invoice.issueDate) %></dd>
+              </div>
+              <div class="border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Jatuh Tempo</dt>
+                <dd class="mt-1 text-sm <%= summary.isOverdue ? 'font-bold text-rose-700' : 'font-medium text-slate-800' %>"><%= formatDate(invoice.dueDate) %></dd>
+              </div>
+              <div class="sm:col-span-2 border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Deskripsi / Layanan</dt>
+                <dd class="mt-1 whitespace-pre-line text-sm text-slate-700 leading-relaxed"><%= invoice.description || '— Tidak ada keterangan —' %></dd>
+              </div>
+              <div class="sm:col-span-2 border-t border-slate-100 pt-3">
+                <dt class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Catatan Pembayaran</dt>
+                <dd class="mt-1 whitespace-pre-line text-sm text-slate-600 leading-relaxed"><%= invoice.notes || '— Tidak ada catatan khusus —' %></dd>
+              </div>
+            </dl>
+          </section>
+
+          <!-- Financial Snapshot Card -->
+          <section class="card overflow-hidden p-5 flex flex-col justify-between">
+            <div>
+              <h3 class="text-sm font-bold tracking-tight text-slate-900">Ringkasan Finansial Faktur</h3>
+              <dl class="mt-4 space-y-3 text-sm">
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-slate-500">Total Tagihan</dt>
+                  <dd class="font-bold tabular-nums text-slate-900"><%= formatRupiah(invoice.totalAmount) %></dd>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                  <dt class="text-slate-500">Total Telah Dibayar</dt>
+                  <dd class="font-bold tabular-nums text-emerald-700"><%= formatRupiah(summary.totalPaid) %></dd>
+                </div>
+              </dl>
+
+              <div class="mt-4 rounded-xl border border-slate-200/80 bg-slate-50 p-4 shadow-2xs">
+                <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Sisa Tagihan (Piutang)</p>
+                <p class="mt-1 text-2xl font-bold tracking-tight tabular-nums <%= summary.outstanding > 0 ? 'text-amber-700' : 'text-emerald-700' %>">
+                  <%= formatRupiah(summary.outstanding) %>
+                </p>
+              </div>
+
+              <div class="mt-4 flex items-center justify-between gap-3 text-xs">
+                <span class="text-slate-500">Status Pembayaran:</span>
+                <span class="rounded-full px-2.5 py-0.5 font-semibold <%= invoiceStatusClasses[summary.status] %>">
+                  <%= invoiceStatusLabels[summary.status] %>
+                </span>
+              </div>
+            </div>
+
+            <p class="mt-5 border-t border-slate-100 pt-3 text-[11px] leading-relaxed text-slate-400">
+              Sisa tagihan dihitung otomatis dari total tagihan dikurangi pembayaran valid. Pembayaran yang dibatalkan tidak diperhitungkan.
+            </p>
+          </section>
+        </div>
+
+        <!-- Payments Table -->
+        <section class="card overflow-hidden">
+          <header class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-4">
+            <div>
+              <h3 class="text-sm font-bold tracking-tight text-slate-900">Riwayat Pembayaran Cicilan / Pelunasan</h3>
+              <p class="text-xs text-slate-500">Daftar pembayaran masuk untuk faktur tagihan ini.</p>
+            </div>
+            <% if (canPay) { %>
+              <a href="/invoices/<%= invoice.id %>/payments/new" class="btn btn-primary btn-sm shadow-xs">
+                <%- include('../partials/icon', { iconName: 'plus', iconClass: 'h-3.5 w-3.5' }) %>
+                Catat Pembayaran Baru
+              </a>
+            <% } %>
+          </header>
+
+          <% if (invoice.payments.length === 0) { %>
+            <div class="px-5 py-12 text-center">
+              <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-slate-100 text-slate-400">
+                <%- include('../partials/icon', { iconName: 'wallet', iconClass: 'h-6 w-6' }) %>
+              </div>
+              <p class="mt-3 text-sm font-bold text-slate-900">Belum ada pembayaran yang dicatat</p>
+              <p class="mx-auto mt-1 max-w-sm text-xs leading-relaxed text-slate-500">
+                Klik tombol "Catat Pembayaran" saat pelanggan menyerahkan uang muka (DP) atau pelunasan sewa.
+              </p>
+            </div>
+          <% } else { %>
+            <div class="table-shell">
+              <table class="min-w-full divide-y divide-slate-100 text-sm">
+                <thead>
+                  <tr class="bg-slate-50/75 text-left text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                    <th scope="col" class="px-5 py-3.5">Tanggal</th>
+                    <th scope="col" class="px-4 py-3.5 text-right">Nominal</th>
+                    <th scope="col" class="hidden px-4 py-3.5 sm:table-cell">Metode</th>
+                    <th scope="col" class="hidden px-4 py-3.5 md:table-cell">Referensi</th>
+                    <th scope="col" class="hidden px-4 py-3.5 lg:table-cell">Dicatat Oleh</th>
+                    <th scope="col" class="px-4 py-3.5">Status</th>
+                    <th scope="col" class="px-5 py-3.5 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <% invoice.payments.forEach(function (payment) { %>
+                    <tr class="transition hover:bg-slate-50/60">
+                      <td class="whitespace-nowrap px-5 py-3.5 text-xs text-slate-600"><%= formatDate(payment.paymentDate) %></td>
+                      <td class="whitespace-nowrap px-4 py-3.5 text-right font-semibold tabular-nums <%= payment.voidedAt ? 'text-slate-400 line-through' : 'text-slate-900' %>">
+                        <%= formatRupiah(payment.amount) %>
+                      </td>
+                      <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-700 sm:table-cell"><%= paymentMethodLabels[payment.method] || payment.method %></td>
+                      <td class="hidden max-w-[10rem] px-4 py-3.5 text-xs text-slate-500 md:table-cell">
+                        <span class="line-clamp-1"><%= payment.reference || '—' %></span>
+                      </td>
+                      <td class="hidden whitespace-nowrap px-4 py-3.5 text-xs text-slate-500 lg:table-cell"><%= payment.recordedBy.name %></td>
+                      <td class="px-4 py-3.5 whitespace-nowrap">
+                        <% if (payment.voidedAt) { %>
+                          <span class="inline-flex rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 border border-rose-200/60">Dibatalkan</span>
+                        <% } else { %>
+                          <span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/60">Valid</span>
+                        <% } %>
+                      </td>
+                      <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                        <a href="/payments/<%= payment.id %>" class="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-700">
+                          Detail
+                          <%- include('../partials/icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+                        </a>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } %>
+        </section>
+
+        <!-- Cancellation Panel if eligible -->
+        <% if (!invoice.cancelledAt) { %>
+          <section class="card overflow-hidden p-5">
+            <h3 class="text-sm font-bold tracking-tight text-slate-900">Batalkan Faktur Tagihan</h3>
+            <% if (canCancel) { %>
+              <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                Pembatalan bersifat permanen. Faktur yang dibatalkan tidak lagi dihitung sebagai piutang aktif dan tidak dapat menerima pelunasan.
+              </p>
+              <form
+                method="post"
+                action="/invoices/<%= invoice.id %>/cancel"
+                class="mt-4 space-y-3"
+                data-confirm="Apakah Anda yakin ingin membatalkan tagihan ini? Tindakan pembatalan bersifat permanen."
+                data-submit-loading
+              >
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+                <div>
+                  <label for="cancelReason" class="block text-xs font-semibold text-slate-700">Alasan Pembatalan <span class="text-rose-500">*</span></label>
+                  <textarea
+                    id="cancelReason"
+                    name="reason"
+                    rows="2"
+                    required
+                    maxlength="500"
+                    class="input-field"
+                    placeholder="Contoh: Kesepakatan sewa dibatalkan sebelum masa peminjaman unit dimulai."
+                  ></textarea>
+                </div>
+                <div class="flex justify-end">
+                  <button
+                    type="submit"
+                    class="btn btn-danger btn-sm"
+                  >
+                    <%- include('../partials/icon', { iconName: 'close', iconClass: 'h-4 w-4' }) %>
+                    Batalkan Tagihan Ini
+                  </button>
+                </div>
+              </form>
+            <% } else { %>
+              <p class="mt-1 text-xs leading-relaxed text-slate-500">
+                Faktur tagihan ini masih memiliki transaksi pembayaran yang berstatus valid. Batalkan terlebih dahulu seluruh pembayaran terkait sebelum dapat membatalkan faktur ini.
+              </p>
+            <% } %>
+          </section>
+        <% } %>
+      </div>
+    </main>
+
+    <%- include('../partials/foot') %>
+  </div>
+</body>
+</html>

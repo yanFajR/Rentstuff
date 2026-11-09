@@ -1,0 +1,60 @@
+<header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 backdrop-blur-xs">
+  <div class="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
+    <button
+      type="button"
+      data-sidebar-toggle
+      class="rounded-xl border border-slate-200/80 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 lg:hidden"
+      aria-label="Buka menu"
+      aria-controls="app-sidebar"
+      aria-expanded="false"
+    >
+      <%- include('icon', { iconName: 'menu', iconClass: 'h-5 w-5' }) %>
+    </button>
+
+    <div class="min-w-0">
+      <h1 class="truncate text-base font-bold tracking-tight text-slate-900 sm:text-lg"><%= locals.pageTitle %></h1>
+      <% if (locals.pageSubtitle) { %>
+        <p class="hidden truncate text-xs font-medium text-slate-500 sm:block"><%= locals.pageSubtitle %></p>
+      <% } %>
+    </div>
+
+    <% if (locals.currentUser && locals.currentBusiness) { %>
+      <div class="ml-auto flex items-center gap-2 sm:gap-3">
+        <a
+          href="/settings"
+          class="hidden items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50 md:inline-flex"
+          title="Pengaturan profil bisnis"
+        >
+          <%- include('icon', { iconName: 'building', iconClass: 'h-3.5 w-3.5 text-slate-400' }) %>
+          <span class="max-w-[12rem] truncate"><%= locals.currentBusiness.name %></span>
+        </a>
+
+        <a
+          href="/settings"
+          class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-1 pr-2.5 shadow-2xs transition hover:border-slate-300 hover:bg-slate-50"
+          title="Akun saya"
+        >
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-brand-600 text-xs font-bold text-white shadow-2xs">
+            <%= locals.currentUser.initials %>
+          </span>
+          <span class="hidden min-w-0 text-left sm:block">
+            <span class="block max-w-[9rem] truncate text-xs font-semibold text-slate-900"><%= locals.currentUser.name %></span>
+            <span class="block text-[10px] text-slate-500"><%= locals.currentBusiness.role === 'OWNER' ? 'Pemilik' : 'Staf' %></span>
+          </span>
+        </a>
+
+        <form method="post" action="/logout" class="inline-flex" data-submit-loading>
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken %>" />
+          <button
+            type="submit"
+            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 shadow-2xs transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700 active:scale-[0.98]"
+            aria-label="Keluar dari akun"
+          >
+            <%- include('icon', { iconName: 'logout', iconClass: 'h-4 w-4' }) %>
+            <span class="hidden sm:inline">Keluar</span>
+          </button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</header>

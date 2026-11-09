@@ -1,0 +1,64 @@
+<% if (pagination.total > 0) {
+  const windowStart = Math.max(1, pagination.page - 2);
+  const windowEnd = Math.min(pagination.totalPages, pagination.page + 2);
+  const pageNumbers = [];
+  for (let pageNumber = windowStart; pageNumber <= windowEnd; pageNumber += 1) {
+    pageNumbers.push(pageNumber);
+  }
+%>
+  <div class="flex flex-col gap-3 border-t border-slate-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-xs text-slate-500">
+      Menampilkan
+      <span class="font-semibold text-slate-700"><%= pagination.from %>–<%= pagination.to %></span>
+      dari <span class="font-semibold text-slate-700"><%= pagination.total %></span> data
+    </p>
+
+    <% if (pagination.totalPages > 1) { %>
+      <nav class="flex flex-wrap items-center gap-1" aria-label="Navigasi halaman">
+        <% if (pagination.page > 1) { %>
+          <a
+            href="<%= buildUrl(path, Object.assign({}, query, { page: pagination.page - 1 })) %>"
+            class="pagination-link"
+            aria-label="Halaman sebelumnya"
+          >
+            <%- include('icon', { iconName: 'chevronLeft', iconClass: 'h-3.5 w-3.5' }) %>
+            <span class="hidden sm:inline">Sebelumnya</span>
+          </a>
+        <% } else { %>
+          <span class="pagination-disabled" aria-disabled="true">
+            <%- include('icon', { iconName: 'chevronLeft', iconClass: 'h-3.5 w-3.5' }) %>
+            <span class="hidden sm:inline">Sebelumnya</span>
+          </span>
+        <% } %>
+
+        <% pageNumbers.forEach(function (pageNumber) { %>
+          <% if (pageNumber === pagination.page) { %>
+            <span class="pagination-current" aria-current="page"><%= pageNumber %></span>
+          <% } else { %>
+            <a
+              href="<%= buildUrl(path, Object.assign({}, query, { page: pageNumber })) %>"
+              class="pagination-link min-w-9 justify-center"
+              aria-label="Halaman <%= pageNumber %>"
+            ><%= pageNumber %></a>
+          <% } %>
+        <% }); %>
+
+        <% if (pagination.page < pagination.totalPages) { %>
+          <a
+            href="<%= buildUrl(path, Object.assign({}, query, { page: pagination.page + 1 })) %>"
+            class="pagination-link"
+            aria-label="Halaman berikutnya"
+          >
+            <span class="hidden sm:inline">Berikutnya</span>
+            <%- include('icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+          </a>
+        <% } else { %>
+          <span class="pagination-disabled" aria-disabled="true">
+            <span class="hidden sm:inline">Berikutnya</span>
+            <%- include('icon', { iconName: 'chevronRight', iconClass: 'h-3.5 w-3.5' }) %>
+          </span>
+        <% } %>
+      </nav>
+    <% } %>
+  </div>
+<% } %>
